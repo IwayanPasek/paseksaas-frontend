@@ -1,0 +1,6 @@
+# Abaikan kredensial
+.env
+config.php
+
+# Abaikan foto upload dari user agar repo tidak bengkak
+assets/img/produk/
