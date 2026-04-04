@@ -1,7 +1,9 @@
 <?php
+// ╔══════════════════════════════════════════════════════════════╗
+//  HYBRID BRIDGE & API: SECURE LOGIN GATEWAY
+// ╚══════════════════════════════════════════════════════════════╝
 session_start();
 
-// 1. Koneksi Database
 $db_host = 'localhost';
 $db_user = 'wayan_user';
 $db_pass = 'WayanPass123!';
@@ -13,164 +15,141 @@ try {
         PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC
     ]);
 } catch (PDOException $e) {
+    if (isset($_GET['api'])) {
+        die(json_encode(['status' => 'error', 'message' => 'Sistem sedang pemeliharaan.']));
+    }
     die("Sistem sedang pemeliharaan.");
 }
 
-$error = "";
-
-// 2. Logika Login
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // Bersihkan sesi lama sebelum login baru
-    session_unset();
+// ── 1. API ENDPOINT UNTUK REACT ──
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['api'])) {
+    header('Content-Type: application/json');
+    $data = json_decode(file_get_contents('php://input'), true);
     
-    $user = trim($_POST['username']);
-    $pass = $_POST['password'];
+    $user = trim($data['username'] ?? '');
+    $pass = $data['password'] ?? '';
+    $remember = $data['remember'] ?? false;
 
-    if (!empty($user) && !empty($pass)) {
+    // Proteksi Brute-Force (Terkunci 5 Menit jika 3x gagal)
+    if (isset($_SESSION['lockout_time']) && time() < $_SESSION['lockout_time']) {
+        $wait = ceil(($_SESSION['lockout_time'] - time()) / 60);
+        echo json_encode(['status' => 'error', 'message' => "Terlalu banyak percobaan. Sistem terkunci selama $wait menit."]);
+        exit;
+    }
+
+    if (empty($user) || empty($pass)) {
+        echo json_encode(['status' => 'error', 'message' => 'Harap isi identitas dan keyphrase.']);
+        exit;
+    }
+
+    // TAHAP A: Cek Master Admin
+    $stmt_master = $pdo->prepare("SELECT * FROM master_admin WHERE username = ?");
+    $stmt_master->execute([$user]);
+    $master = $stmt_master->fetch();
+
+    if ($master && password_verify($pass, $master['password'])) {
+        $_SESSION['master_logged_in'] = true;
+        $_SESSION['role'] = 'master';
+        $_SESSION['login_attempts'] = 0; // Reset brute-force
         
-        // --- TAHAP 1: CEK MASTER ADMIN ---
-        $stmt_master = $pdo->prepare("SELECT * FROM master_admin WHERE username = ?");
-        $stmt_master->execute([$user]);
-        $master = $stmt_master->fetch();
-
-        if ($master && password_verify($pass, $master['password'])) {
-            $_SESSION['master_logged_in'] = true;
-            $_SESSION['role'] = 'master';
-            header("Location: master.php");
-            exit;
+        if ($remember) {
+            setcookie('remember_master', $user, time() + (86400 * 30), "/"); // 30 Hari
         }
+        echo json_encode(['status' => 'success', 'redirect' => 'master.php']);
+        exit;
+    }
 
-        // --- TAHAP 2: CEK TENANT / TOKO (Username adalah subdomain) ---
-        $stmt_toko = $pdo->prepare("SELECT * FROM toko WHERE subdomain = ?");
-        $stmt_toko->execute([$user]);
-        $toko = $stmt_toko->fetch();
+    // TAHAP B: Cek Tenant / Toko
+    $stmt_toko = $pdo->prepare("SELECT * FROM toko WHERE subdomain = ?");
+    $stmt_toko->execute([$user]);
+    $toko = $stmt_toko->fetch();
 
-        if ($toko && password_verify($pass, $toko['password'])) {
+    if ($toko && password_verify($pass, $toko['password'])) {
+        $_SESSION['tenant_id'] = $toko['id_toko'];
+        $_SESSION['nama_toko'] = $toko['nama_toko'];
+        $_SESSION['role'] = 'tenant';
+        $_SESSION['login_attempts'] = 0; // Reset brute-force
+        
+        if ($remember) {
+            setcookie('remember_tenant', $toko['id_toko'], time() + (86400 * 30), "/"); // 30 Hari
+        }
+        echo json_encode(['status' => 'success', 'redirect' => 'admin.php']);
+        exit;
+    }
+
+    // TAHAP C: Gagal Login (Catat percobaan)
+    $_SESSION['login_attempts'] = ($_SESSION['login_attempts'] ?? 0) + 1;
+    if ($_SESSION['login_attempts'] >= 3) {
+        $_SESSION['lockout_time'] = time() + (5 * 60); // Kunci 5 menit
+        echo json_encode(['status' => 'error', 'message' => 'Otorisasi ditolak 3 kali. Akses diblokir sementara.']);
+    } else {
+        $sisa = 3 - $_SESSION['login_attempts'];
+        echo json_encode(['status' => 'error', 'message' => "Identitas atau keyphrase salah. Sisa: $sisa percobaan"]);
+    }
+    exit;
+}
+
+// ── 2. AUTO LOGIN DARI COOKIE (Remember Me) ──
+if (!isset($_SESSION['role'])) {
+    if (isset($_COOKIE['remember_master'])) {
+        $_SESSION['master_logged_in'] = true;
+        $_SESSION['role'] = 'master';
+        header("Location: master.php"); 
+        exit;
+    } elseif (isset($_COOKIE['remember_tenant'])) {
+        $stmt = $pdo->prepare("SELECT * FROM toko WHERE id_toko = ?");
+        $stmt->execute([$_COOKIE['remember_tenant']]);
+        if ($toko = $stmt->fetch()) {
             $_SESSION['tenant_id'] = $toko['id_toko'];
             $_SESSION['nama_toko'] = $toko['nama_toko'];
             $_SESSION['role'] = 'tenant';
-            header("Location: admin.php");
+            header("Location: admin.php"); 
             exit;
         }
+    }
+}
 
-        $error = "Identitas atau kunci akses salah.";
-    } else {
-        $error = "Harap masukkan semua data.";
+// ── 3. JIKA SUDAH LOGIN, REDIRECT LANGSUNG ──
+if (isset($_SESSION['role'])) {
+    if ($_SESSION['role'] === 'master') { header("Location: master.php"); exit; }
+    if ($_SESSION['role'] === 'tenant') { header("Location: admin.php"); exit; }
+}
+
+// ── 4. DATA UNTUK REACT ──
+$loginData = [
+    'is_login_page' => true,
+    'master_wa' => '6281234567890' // GANTI DENGAN NO WA ANDA
+];
+
+// Deteksi File Vite
+$distPath = __DIR__ . '/react-app/dist/assets/';
+$cssFile = ''; $jsFile = '';
+if (is_dir($distPath)) {
+    $files = scandir($distPath);
+    foreach ($files as $file) {
+        if (str_ends_with($file, '.css')) $cssFile = 'react-app/dist/assets/' . $file;
+        if (str_ends_with($file, '.js'))  $jsFile  = 'react-app/dist/assets/' . $file;
     }
 }
 ?>
-
 <!DOCTYPE html>
 <html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gateway — Pasek SaaS Infrastructure</title>
-    
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=Syne:wght@700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-    <script src="https://cdn.tailwindcss.com"></script>
-
-    <style>
-        body {
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            background: #080d1a;
-            color: #e2eaf5;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            margin: 0;
-            overflow: hidden;
-        }
-
-        /* Background Glow Effect */
-        body::before {
-            content: '';
-            position: absolute; width: 400px; height: 400px;
-            background: radial-gradient(circle, rgba(245, 166, 35, 0.05) 0%, transparent 70%);
-            z-index: -1;
-        }
-
-        .login-card {
-            background: rgba(13, 20, 39, 0.7);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            width: 100%;
-            max-width: 400px;
-            padding: 2.5rem;
-            border-radius: 35px;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-            animation: slideUp 0.6s ease-out;
-        }
-
-        @keyframes slideUp {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .input-group input {
-            background: rgba(8, 13, 26, 0.5);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            color: white;
-            transition: all 0.3s ease;
-        }
-
-        .input-group input:focus {
-            border-color: #f5a623;
-            outline: none;
-            background: rgba(8, 13, 26, 0.8);
-            box-shadow: 0 0 0 4px rgba(245, 166, 35, 0.1);
-        }
-    </style>
+    <title>Gateway — Pasek SaaS</title>
+    <script>window.LOGIN_DATA = <?= json_encode($loginData) ?>;</script>
+    <?php if ($cssFile): ?><link rel="stylesheet" href="<?= $cssFile ?>"><?php endif; ?>
+    <style>body { background: #080d1a; margin: 0; overflow: hidden; }</style>
 </head>
 <body>
-
-    <div class="login-card">
-        <div class="text-center mb-10">
-            <div class="inline-flex items-center justify-center w-14 h-14 bg-amber-500 text-slate-900 rounded-2xl mb-4 shadow-lg shadow-amber-500/20">
-                <i class="bi bi-shield-lock-fill text-2xl"></i>
-            </div>
-            <h1 style="font-family: 'Syne', sans-serif;" class="text-3xl font-extrabold tracking-tight">Pasek<span class="text-amber-500">SaaS</span></h1>
-            <p class="text-slate-500 text-[10px] mt-1 uppercase tracking-[0.3em] font-bold">Secure Access Node</p>
-        </div>
-
-        <?php if ($error): ?>
-            <div class="bg-rose-500/10 border border-rose-500/20 text-rose-400 text-[11px] p-3 rounded-xl mb-6 flex items-center gap-2">
-                <i class="bi bi-exclamation-triangle-fill"></i>
-                <?= $error ?>
-            </div>
+    <div id="root">
+        <?php if (!$jsFile): ?>
+            <h2 style="color:white; text-align:center; margin-top:20vh; font-family:sans-serif;">
+                React Gateway belum di-build. Jalankan `npm run build`.
+            </h2>
         <?php endif; ?>
-
-        <form action="" method="POST" class="space-y-5">
-            <div class="input-group">
-                <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1 mb-2">Identifier</label>
-                <div class="relative">
-                    <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-600"><i class="bi bi-person"></i></span>
-                    <input type="text" name="username" placeholder="Username or Subdomain" 
-                           class="w-full pl-11 pr-5 py-4 rounded-2xl text-sm" required>
-                </div>
-            </div>
-
-            <div class="input-group">
-                <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1 mb-2">Keyphrase</label>
-                <div class="relative">
-                    <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-600"><i class="bi bi-key"></i></span>
-                    <input type="password" name="password" placeholder="••••••••" 
-                           class="w-full pl-11 pr-5 py-4 rounded-2xl text-sm" required>
-                </div>
-            </div>
-
-            <button type="submit" 
-                    class="w-full bg-amber-500 text-slate-900 font-extrabold py-4 rounded-2xl mt-2 hover:bg-amber-400 transform active:scale-95 transition-all shadow-xl shadow-amber-500/10">
-                AUTHORIZE ACCESS
-            </button>
-        </form>
-
-        <div class="mt-10 text-center opacity-30">
-            <p class="text-[9px] tracking-[0.3em] uppercase">Control System v2.6.0</p>
-        </div>
     </div>
-
+    <?php if ($jsFile): ?><script type="module" src="<?= $jsFile ?>"></script><?php endif; ?>
 </body>
 </html>
