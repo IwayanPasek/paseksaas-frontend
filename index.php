@@ -8,7 +8,6 @@ define('DB_HOST',     'localhost');
 define('DB_USER',     'wayan_user');
 define('DB_PASS',     'WayanPass123!');
 define('DB_NAME',     'websitewayan_db');
-define('BASE_DOMAIN', 'websitewayan.my.id');
 
 $http_host = $_SERVER['HTTP_HOST'] ?? '';
 $parts     = explode('.', $http_host);
@@ -17,6 +16,7 @@ $subdomain = (count($parts) >= 3) ? strtolower($parts[0]) : '';
 $toko = null;
 $list_produk = [];
 $list_kategori = [];
+$list_faq = [];
 
 try {
     $pdo = new PDO(
@@ -40,23 +40,24 @@ try {
         $list_produk = $stmt_all->fetchAll(PDO::FETCH_ASSOC);
 
         // Ambil Data Kategori
-        // Menggunakan try-catch agar jika tabel belum ada, halaman tidak error fatal
         try {
             $stmt_cat = $pdo->prepare("SELECT * FROM kategori WHERE id_toko = ? ORDER BY id_kategori DESC");
             $stmt_cat->execute([$id_toko]);
             $list_kategori = $stmt_cat->fetchAll(PDO::FETCH_ASSOC);
-        } catch (Exception $e) {
-            $list_kategori = [];
-        }
+        } catch (Exception $e) { $list_kategori = []; }
+
+        // Ambil Data FAQ
+        try {
+            $stmt_faq = $pdo->prepare("SELECT * FROM faq_toko WHERE id_toko = ? ORDER BY id_faq ASC");
+            $stmt_faq->execute([$id_toko]);
+            $list_faq = $stmt_faq->fetchAll(PDO::FETCH_ASSOC);
+        } catch (Exception $e) { $list_faq = []; }
     }
-} catch (PDOException $e) {
-    // Tangkap error secara diam-diam
-}
+} catch (PDOException $e) {}
 
 // Redirect jika bukan subdomain toko
 if (!$subdomain || in_array($subdomain, ['www', 'websitewayan'])) {
-    header("Location: login.php");
-    exit;
+    header("Location: login.php"); exit;
 }
 
 if (!$toko) {
@@ -66,25 +67,27 @@ if (!$toko) {
 }
 
 // ── BUNGKUS DATA UNTUK REACT ──
-$wa_raw = $toko['no_wa'] ?? $toko['whatsapp'] ?? '081234567890';
+$wa_raw = $toko['kontak_wa'] ?? $toko['no_wa'] ?? $toko['whatsapp'] ?? '081234567890';
 $wa_clean = preg_replace('/[^0-9]/', '', $wa_raw);
 if (str_starts_with($wa_clean, '0')) $wa_clean = '62' . substr($wa_clean, 1);
+
+// Prioritaskan Deskripsi Landing. Jika kosong, pakai knowledge_base.
+$deskripsi = !empty($toko['deskripsi_landing']) ? $toko['deskripsi_landing'] : ($toko['knowledge_base'] ?: 'Temukan layanan terbaik kami dengan bantuan Asisten AI.');
 
 $reactData = [
     'id_toko'    => (int)$toko['id_toko'],
     'nama_toko'  => $toko['nama_toko'],
-    'desc_toko'  => $toko['knowledge_base'] ?: 'Temukan layanan terbaik kami dengan bantuan Asisten AI.',
+    'desc_toko'  => $deskripsi,
     'wa_num'     => $wa_clean,
     'logo'       => $toko['logo'] ?? null,
     'products'   => $list_produk,
-    'categories' => $list_kategori // Data Kategori ditambahkan di sini!
+    'categories' => $list_kategori,
+    'faq'        => $list_faq
 ];
 
 // ── AUTO-DETECT VITE COMPILED ASSETS ──
 $distPath = __DIR__ . '/react-app/dist/assets/';
-$cssFile = '';
-$jsFile = '';
-
+$cssFile = ''; $jsFile = '';
 if (is_dir($distPath)) {
     $files = scandir($distPath);
     foreach ($files as $file) {
@@ -98,29 +101,12 @@ if (is_dir($distPath)) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= htmlspecialchars($toko['nama_toko']) ?> - AI SaaS</title>
-    
-    <script>
-        window.STORE_DATA = <?= json_encode($reactData) ?>;
-    </script>
-
-    <?php if ($cssFile): ?>
-        <link rel="stylesheet" href="<?= $cssFile ?>">
-    <?php else: ?>
-        <style>body { font-family: sans-serif; text-align: center; margin-top: 20vh; background: #f8fafc; color: #334155; } </style>
-    <?php endif; ?>
+    <title><?= htmlspecialchars($toko['nama_toko']) ?> - Pasek SaaS</title>
+    <script>window.STORE_DATA = <?= json_encode($reactData) ?>;</script>
+    <?php if ($cssFile): ?><link rel="stylesheet" href="<?= $cssFile ?>"><?php else: ?><style>body { font-family: sans-serif; text-align: center; margin-top: 20vh; background: #f8fafc; }</style><?php endif; ?>
 </head>
 <body>
-    
-    <div id="root">
-        <?php if (!$jsFile): ?>
-            <h2>Aplikasi React belum di-build. Jalankan `npm run build` di folder react-app.</h2>
-        <?php endif; ?>
-    </div>
-
-    <?php if ($jsFile): ?>
-        <script type="module" src="<?= $jsFile ?>"></script>
-    <?php endif; ?>
-
+    <div id="root"><?php if (!$jsFile): ?><h2>Aplikasi React belum di-build. Jalankan `npm run build`.</h2><?php endif; ?></div>
+    <?php if ($jsFile): ?><script type="module" src="<?= $jsFile ?>"></script><?php endif; ?>
 </body>
 </html>
