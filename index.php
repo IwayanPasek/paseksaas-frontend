@@ -1,6 +1,6 @@
 <?php
 // ╔══════════════════════════════════════════════════════════════╗
-//  HYBRID BRIDGE: PHP Data Injector -> React Frontend
+//  HYBRID BRIDGE: PHP Data Injector -> React Frontend (Landing Page)
 // ╚══════════════════════════════════════════════════════════════╝
 session_start();
 
@@ -16,6 +16,7 @@ $subdomain = (count($parts) >= 3) ? strtolower($parts[0]) : '';
 
 $toko = null;
 $list_produk = [];
+$list_kategori = [];
 
 try {
     $pdo = new PDO(
@@ -31,9 +32,22 @@ try {
     }
 
     if ($toko) {
+        $id_toko = $toko['id_toko'];
+        
+        // Ambil Data Produk
         $stmt_all = $pdo->prepare("SELECT * FROM produk WHERE id_toko = ? ORDER BY id_produk DESC");
-        $stmt_all->execute([$toko['id_toko']]);
+        $stmt_all->execute([$id_toko]);
         $list_produk = $stmt_all->fetchAll(PDO::FETCH_ASSOC);
+
+        // Ambil Data Kategori
+        // Menggunakan try-catch agar jika tabel belum ada, halaman tidak error fatal
+        try {
+            $stmt_cat = $pdo->prepare("SELECT * FROM kategori WHERE id_toko = ? ORDER BY id_kategori DESC");
+            $stmt_cat->execute([$id_toko]);
+            $list_kategori = $stmt_cat->fetchAll(PDO::FETCH_ASSOC);
+        } catch (Exception $e) {
+            $list_kategori = [];
+        }
     }
 } catch (PDOException $e) {
     // Tangkap error secara diam-diam
@@ -57,12 +71,13 @@ $wa_clean = preg_replace('/[^0-9]/', '', $wa_raw);
 if (str_starts_with($wa_clean, '0')) $wa_clean = '62' . substr($wa_clean, 1);
 
 $reactData = [
-    'id_toko'   => (int)$toko['id_toko'],
-    'nama_toko' => $toko['nama_toko'],
-    'desc_toko' => $toko['knowledge_base'] ?: 'Temukan layanan terbaik kami dengan bantuan Asisten AI.',
-    'wa_num'    => $wa_clean,
-    'logo'      => $toko['logo'] ?? null,
-    'products'  => $list_produk
+    'id_toko'    => (int)$toko['id_toko'],
+    'nama_toko'  => $toko['nama_toko'],
+    'desc_toko'  => $toko['knowledge_base'] ?: 'Temukan layanan terbaik kami dengan bantuan Asisten AI.',
+    'wa_num'     => $wa_clean,
+    'logo'       => $toko['logo'] ?? null,
+    'products'   => $list_produk,
+    'categories' => $list_kategori // Data Kategori ditambahkan di sini!
 ];
 
 // ── AUTO-DETECT VITE COMPILED ASSETS ──
@@ -92,7 +107,7 @@ if (is_dir($distPath)) {
     <?php if ($cssFile): ?>
         <link rel="stylesheet" href="<?= $cssFile ?>">
     <?php else: ?>
-        <style>body { font-family: sans-serif; text-align: center; margin-top: 20vh; } </style>
+        <style>body { font-family: sans-serif; text-align: center; margin-top: 20vh; background: #f8fafc; color: #334155; } </style>
     <?php endif; ?>
 </head>
 <body>
