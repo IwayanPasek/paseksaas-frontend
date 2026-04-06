@@ -7,13 +7,13 @@
 require_once __DIR__ . '/config.php';
 
 function getViteAssets(): array {
-    $css = '';
-    $js  = '';
+    $css = [];
+    $js  = [];
 
     if (is_dir(DIST_DIR)) {
         foreach (scandir(DIST_DIR) as $file) {
-            if (str_ends_with($file, '.css')) $css = 'react-app/dist/assets/' . $file;
-            if (str_ends_with($file, '.js'))  $js  = 'react-app/dist/assets/' . $file;
+            if (str_ends_with($file, '.css')) $css[] = 'react-app/dist/assets/' . $file;
+            if (str_ends_with($file, '.js'))  $js[]  = 'react-app/dist/assets/' . $file;
         }
     }
 
@@ -34,19 +34,19 @@ function renderReactShell(string $title, string $windowVar, array $data): void {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= htmlspecialchars($title) ?></title>
     <script>window.<?= $windowVar ?> = <?= $jsonData ?>;</script>
-    <?php if ($assets['css']): ?><link rel="stylesheet" href="<?= $assets['css'] ?>"><?php endif; ?>
+    <?php foreach ($assets['css'] as $c): ?><link rel="stylesheet" href="<?= $c ?>"><?php endforeach; ?>
     <style>body { background-color: #fafafa; margin: 0; font-family: 'Inter', system-ui, sans-serif; }</style>
 </head>
 <body>
     <div id="root">
-        <?php if (!$assets['js']): ?>
+        <?php if (empty($assets['js'])): ?>
             <div style="text-align:center;padding:50px;margin-top:20vh;font-family:sans-serif;color:#737373;">
                 <h2>Aplikasi React belum di-build.</h2>
                 <p>Jalankan <code>npm run build</code> di folder react-app.</p>
             </div>
         <?php endif; ?>
     </div>
-    <?php if ($assets['js']): ?><script type="module" src="<?= $assets['js'] ?>"></script><?php endif; ?>
+    <?php foreach ($assets['js'] as $j): ?><script type="module" src="<?= $j ?>"></script><?php endforeach; ?>
 </body>
 </html>
     <?php
