@@ -48,7 +48,11 @@ export default function PersonaTab({ csrfToken }) {
               <div key={f.id_faq} className="bg-neutral-50 p-4 rounded-xl border border-neutral-100 relative group">
                 <p className="font-medium text-neutral-900 text-sm mb-1">Q: {f.pertanyaan || '(Kosong)'}</p>
                 <p className="text-sm text-neutral-500">A: {f.jawaban || '(Kosong)'}</p>
-                <a href={`admin.php?del_faq=${f.id_faq}`} onClick={(e) => !confirm('Hapus FAQ?') && e.preventDefault()} className="absolute top-3 right-3 text-neutral-300 hover:text-danger-500 transition-colors"><Trash2 size={14} /></a>
+                <form method="POST" action="admin.php" onSubmit={(e) => !confirm('Hapus FAQ?') && e.preventDefault()} className="absolute top-3 right-3">
+                  <input type="hidden" name="del_faq" value={f.id_faq} />
+                  <input type="hidden" name="_csrf_token" value={csrfToken} />
+                  <button type="submit" className="text-neutral-300 hover:text-danger-500 transition-colors"><Trash2 size={14} /></button>
+                </form>
               </div>
             ))}
         </div>

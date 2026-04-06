@@ -23,7 +23,7 @@ if ($http_host !== $site_domain && str_ends_with($http_host, '.' . $site_domain)
 
 // Redirect if not a valid store subdomain
 if (!$subdomain || $subdomain === 'www') {
-    header('Location: login.php');
+    header('Location: landing.php');
     exit;
 }
 

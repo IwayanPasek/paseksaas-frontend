@@ -6,7 +6,7 @@ import { adminData } from '../adminData';
 import { formatRp } from '@/lib/utils';
 import { Package } from 'lucide-react';
 
-export default function ProdukTab({ onEdit }) {
+export default function ProdukTab({ onEdit, csrfToken }) {
   if (adminData.produk.length === 0) return <EmptyState icon={Package} title="Etalase kosong." subtitle="Tambahkan layanan pertama Anda." />;
 
   return (
@@ -25,7 +25,11 @@ export default function ProdukTab({ onEdit }) {
           </div>
           <div className="flex gap-1.5 shrink-0">
             <button onClick={() => onEdit(p)} className="p-2.5 bg-neutral-100 text-neutral-500 rounded-lg hover:bg-neutral-900 hover:text-white transition-colors" title="Edit"><Edit3 size={15} /></button>
-            <a href={`admin.php?hapus_prod=${p.id_produk}`} onClick={(e) => !confirm('Hapus permanen?') && e.preventDefault()} className="p-2.5 bg-danger-50 text-danger-500 rounded-lg hover:bg-danger-500 hover:text-white transition-colors"><Trash2 size={15} /></a>
+            <form method="POST" action="admin.php" onSubmit={(e) => !confirm('Hapus permanen?') && e.preventDefault()} className="inline">
+              <input type="hidden" name="hapus_prod" value={p.id_produk} />
+              <input type="hidden" name="_csrf_token" value={csrfToken} />
+              <button type="submit" className="p-2.5 bg-danger-50 text-danger-500 rounded-lg hover:bg-danger-500 hover:text-white transition-colors"><Trash2 size={15} /></button>
+            </form>
           </div>
         </div>
       ))}

@@ -7,6 +7,58 @@ session_start();
 require_once __DIR__ . '/includes/db.php';
 require_once __DIR__ . '/includes/vite.php';
 
+// ── Remember-me token secret (HMAC signing key) ──
+define('COOKIE_SECRET', hash('sha256', DB_PASS . '_paseksaas_cookie_sign'));
+
+/**
+ * Create a signed remember-me cookie value.
+ * Format: base64(id|role|expiry|signature)
+ */
+function createRememberToken(string $id, string $role): string {
+    $expiry = time() + (86400 * 30); // 30 days
+    $payload = "$id|$role|$expiry";
+    $sig = hash_hmac('sha256', $payload, COOKIE_SECRET);
+    return base64_encode("$payload|$sig");
+}
+
+/**
+ * Verify and decode a remember-me token.
+ * Returns ['id' => ..., 'role' => ...] or false.
+ */
+function verifyRememberToken(string $token): array|false {
+    $decoded = base64_decode($token, true);
+    if (!$decoded) return false;
+
+    $parts = explode('|', $decoded);
+    if (count($parts) !== 4) return false;
+
+    [$id, $role, $expiry, $sig] = $parts;
+
+    // Check expiry
+    if ((int) $expiry < time()) return false;
+
+    // Verify HMAC signature
+    $payload = "$id|$role|$expiry";
+    $expected = hash_hmac('sha256', $payload, COOKIE_SECRET);
+    if (!hash_equals($expected, $sig)) return false;
+
+    return ['id' => $id, 'role' => $role];
+}
+
+/**
+ * Set a secure remember-me cookie.
+ */
+function setRememberCookie(string $name, string $value, int $days = 30): void {
+    setcookie($name, $value, [
+        'expires'  => time() + (86400 * $days),
+        'path'     => '/',
+        'domain'   => '',
+        'secure'   => true,
+        'httponly'  => true,
+        'samesite' => 'Strict',
+    ]);
+}
+
 // ── API Endpoint for React ──
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['api'])) {
     header('Content-Type: application/json');
@@ -41,10 +93,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['api'])) {
     $master = $stmt->fetch();
 
     if ($master && password_verify($pass, $master['password'])) {
+        session_regenerate_id(true); // Prevent session fixation
         $_SESSION['master_logged_in'] = true;
+        $_SESSION['master_username'] = $master['username'];
         $_SESSION['role'] = 'master';
         $_SESSION['login_attempts'] = 0;
-        if ($remember) setcookie('remember_master', $user, time() + (86400 * 30), '/');
+
+        if ($remember) {
+            $token = createRememberToken($master['username'], 'master');
+            setRememberCookie('remember_token', $token);
+        }
+
         echo json_encode(['status' => 'success', 'redirect' => 'master.php']);
         exit;
     }
@@ -55,11 +114,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['api'])) {
     $toko = $stmt->fetch();
 
     if ($toko && password_verify($pass, $toko['password'])) {
+        session_regenerate_id(true); // Prevent session fixation
         $_SESSION['tenant_id'] = $toko['id_toko'];
         $_SESSION['nama_toko'] = $toko['nama_toko'];
         $_SESSION['role'] = 'tenant';
         $_SESSION['login_attempts'] = 0;
-        if ($remember) setcookie('remember_tenant', $toko['id_toko'], time() + (86400 * 30), '/');
+
+        if ($remember) {
+            $token = createRememberToken((string)$toko['id_toko'], 'tenant');
+            setRememberCookie('remember_token', $token);
+        }
+
         echo json_encode(['status' => 'success', 'redirect' => 'admin.php']);
         exit;
     }
@@ -76,29 +141,44 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['api'])) {
     exit;
 }
 
-// ── Auto-login from cookie ──
-if (!isset($_SESSION['role'])) {
-    try {
-        $pdo = getDB();
-        if (isset($_COOKIE['remember_master'])) {
-            $_SESSION['master_logged_in'] = true;
-            $_SESSION['role'] = 'master';
-            header('Location: master.php');
-            exit;
-        } elseif (isset($_COOKIE['remember_tenant'])) {
-            $stmt = $pdo->prepare('SELECT * FROM toko WHERE id_toko = ?');
-            $stmt->execute([$_COOKIE['remember_tenant']]);
-            if ($toko = $stmt->fetch()) {
-                $_SESSION['tenant_id'] = $toko['id_toko'];
-                $_SESSION['nama_toko'] = $toko['nama_toko'];
-                $_SESSION['role'] = 'tenant';
-                header('Location: admin.php');
-                exit;
+// ── Auto-login from signed cookie ──
+if (!isset($_SESSION['role']) && isset($_COOKIE['remember_token'])) {
+    $tokenData = verifyRememberToken($_COOKIE['remember_token']);
+
+    if ($tokenData) {
+        try {
+            $pdo = getDB();
+
+            if ($tokenData['role'] === 'master') {
+                $stmt = $pdo->prepare('SELECT * FROM master_admin WHERE username = ?');
+                $stmt->execute([$tokenData['id']]);
+                if ($stmt->fetch()) {
+                    session_regenerate_id(true);
+                    $_SESSION['master_logged_in'] = true;
+                    $_SESSION['master_username'] = $tokenData['id'];
+                    $_SESSION['role'] = 'master';
+                    header('Location: master.php');
+                    exit;
+                }
+            } elseif ($tokenData['role'] === 'tenant') {
+                $stmt = $pdo->prepare('SELECT * FROM toko WHERE id_toko = ?');
+                $stmt->execute([$tokenData['id']]);
+                if ($toko = $stmt->fetch()) {
+                    session_regenerate_id(true);
+                    $_SESSION['tenant_id'] = $toko['id_toko'];
+                    $_SESSION['nama_toko'] = $toko['nama_toko'];
+                    $_SESSION['role'] = 'tenant';
+                    header('Location: admin.php');
+                    exit;
+                }
             }
+        } catch (PDOException $e) {
+            // Continue to login page
         }
-    } catch (PDOException $e) {
-        // Continue to login page
     }
+
+    // Invalid token — clear it
+    setRememberCookie('remember_token', '', -1);
 }
 
 // ── Redirect if already logged in ──

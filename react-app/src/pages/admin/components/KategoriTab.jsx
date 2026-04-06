@@ -19,7 +19,11 @@ export default function KategoriTab({ csrfToken }) {
         {adminData.kategori.map(c => (
           <div key={c.id_kategori} className="card rounded-xl px-4 py-3.5 flex justify-between items-center card-hover transition-colors">
             <div className="flex items-center gap-2.5"><FolderOpen size={16} className="text-neutral-400" /><span className="font-medium text-neutral-800 text-sm">{c.nama_kategori}</span></div>
-            <a href={`admin.php?del_cat=${c.id_kategori}`} onClick={(e) => !confirm(`Hapus ${c.nama_kategori}?`) && e.preventDefault()} className="text-danger-500 hover:bg-danger-50 p-1.5 rounded-lg text-xs transition-colors"><Trash2 size={14} /></a>
+            <form method="POST" action="admin.php" onSubmit={(e) => !confirm(`Hapus ${c.nama_kategori}?`) && e.preventDefault()} className="inline">
+              <input type="hidden" name="del_cat" value={c.id_kategori} />
+              <input type="hidden" name="_csrf_token" value={csrfToken} />
+              <button type="submit" className="text-danger-500 hover:bg-danger-50 p-1.5 rounded-lg text-xs transition-colors"><Trash2 size={14} /></button>
+            </form>
           </div>
         ))}
       </div>

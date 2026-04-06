@@ -23,7 +23,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['register_tenant'])) {
     $sub  = strtolower(preg_replace('/[^a-zA-Z0-9-]/', '', $_POST['subdomain']));
     $pass = password_hash($_POST['password_toko'], PASSWORD_BCRYPT);
     $wa   = preg_replace('/[^0-9]/', '', $_POST['kontak_wa']);
-    $kb   = $_POST['knowledge_base'];
+    $kb   = trim($_POST['knowledge_base']);
 
     try {
         $stmt = $pdo->prepare('INSERT INTO toko (nama_toko, subdomain, password, kontak_wa, knowledge_base) VALUES (?, ?, ?, ?, ?)');
@@ -38,10 +38,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['register_tenant'])) {
 // ── Fetch tenants ──
 $tenants = $pdo->query('SELECT id_toko, nama_toko, subdomain, kontak_wa, created_at FROM toko ORDER BY id_toko DESC')->fetchAll();
 
+// Mask WhatsApp numbers for privacy (show first 4 + last 3 digits)
+foreach ($tenants as &$t) {
+    $wa = $t['kontak_wa'];
+    if (strlen($wa) > 7) {
+        $t['kontak_wa'] = substr($wa, 0, 4) . str_repeat('*', strlen($wa) - 7) . substr($wa, -3);
+    }
+}
+unset($t);
+
 $csrfToken = csrfToken();
 
+$adminUser = $_SESSION['master_username'] ?? 'admin';
+
 renderReactShell('Master Center — Infrastructure Management', 'MASTER_DATA', [
-    'admin_session' => 'pasek@' . SITE_DOMAIN,
+    'admin_session' => $adminUser . '@' . SITE_DOMAIN,
     'total_nodes'   => count($tenants),
     'tenants'       => $tenants,
     'csrf_token'    => $csrfToken,

@@ -25,10 +25,11 @@ if (isset($_POST['add_category'])) {
     exit;
 }
 
-// ── Category: Delete ──
-if (isset($_GET['del_cat'])) {
+// ── Category: Delete (POST + CSRF) ──
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['del_cat'])) {
+    if (!csrfVerify()) { header('Location: admin.php?status=error&msg=Token+CSRF+tidak+valid&tab=kategori'); exit; }
     $stmt = $pdo->prepare('DELETE FROM kategori WHERE id_kategori = ? AND id_toko = ?');
-    $stmt->execute([(int) $_GET['del_cat'], $id_toko]);
+    $stmt->execute([(int) $_POST['del_cat'], $id_toko]);
     header('Location: admin.php?status=success&msg=Kategori+Dihapus&tab=kategori');
     exit;
 }
@@ -44,14 +45,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_product'])) {
     $id_cat   = !empty($_POST['id_kategori']) ? (int) $_POST['id_kategori'] : null;
     $nama_file = !empty($_POST['foto_lama']) ? $_POST['foto_lama'] : 'default.jpg';
 
-    // Handle file upload
+    // Handle file upload (validated)
     if (isset($_FILES['foto']) && $_FILES['foto']['error'] === 0) {
-        if ($nama_file !== 'default.jpg' && file_exists(UPLOAD_DIR . $nama_file)) {
-            @unlink(UPLOAD_DIR . $nama_file);
+        $allowed_ext = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+        $max_size = 5 * 1024 * 1024; // 5MB
+        $ext = strtolower(pathinfo($_FILES['foto']['name'], PATHINFO_EXTENSION));
+        $finfo = finfo_open(FILEINFO_MIME_TYPE);
+        $mime = finfo_file($finfo, $_FILES['foto']['tmp_name']);
+        finfo_close($finfo);
+        $allowed_mime = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+
+        if (in_array($ext, $allowed_ext) && in_array($mime, $allowed_mime) && $_FILES['foto']['size'] <= $max_size) {
+            if ($nama_file !== 'default.jpg' && file_exists(UPLOAD_DIR . $nama_file)) {
+                @unlink(UPLOAD_DIR . $nama_file);
+            }
+            $nama_file = 'prod_' . time() . '_' . bin2hex(random_bytes(4)) . '.' . $ext;
+            move_uploaded_file($_FILES['foto']['tmp_name'], UPLOAD_DIR . $nama_file);
         }
-        $ext = pathinfo($_FILES['foto']['name'], PATHINFO_EXTENSION);
-        $nama_file = 'prod_' . time() . '_' . rand(100, 999) . '.' . $ext;
-        move_uploaded_file($_FILES['foto']['tmp_name'], UPLOAD_DIR . $nama_file);
     }
 
     if ($id_prod) {
@@ -65,9 +75,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_product'])) {
     exit;
 }
 
-// ── Product: Delete ──
-if (isset($_GET['hapus_prod'])) {
-    $id_del = (int) $_GET['hapus_prod'];
+// ── Product: Delete (POST + CSRF) ──
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['hapus_prod'])) {
+    if (!csrfVerify()) { header('Location: admin.php?status=error&msg=Token+CSRF+tidak+valid&tab=produk'); exit; }
+    $id_del = (int) $_POST['hapus_prod'];
     $img = $pdo->prepare('SELECT foto_produk FROM produk WHERE id_produk = ? AND id_toko = ?');
     $img->execute([$id_del, $id_toko]);
     $foto = $img->fetchColumn();
@@ -97,9 +108,10 @@ if (isset($_POST['add_faq'])) {
     exit;
 }
 
-// ── FAQ: Delete ──
-if (isset($_GET['del_faq'])) {
-    $pdo->prepare('DELETE FROM faq_toko WHERE id_faq = ? AND id_toko = ?')->execute([(int) $_GET['del_faq'], $id_toko]);
+// ── FAQ: Delete (POST + CSRF) ──
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['del_faq'])) {
+    if (!csrfVerify()) { header('Location: admin.php?status=error&msg=Token+CSRF+tidak+valid&tab=persona'); exit; }
+    $pdo->prepare('DELETE FROM faq_toko WHERE id_faq = ? AND id_toko = ?')->execute([(int) $_POST['del_faq'], $id_toko]);
     header('Location: admin.php?status=success&msg=FAQ+Dihapus&tab=persona');
     exit;
 }
@@ -116,9 +128,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_profil'])) {
     $params = [$nama_toko, $wa, $desc, $id_toko];
 
     if (isset($_FILES['logo_toko']) && $_FILES['logo_toko']['error'] === 0) {
-        $ext = pathinfo($_FILES['logo_toko']['name'], PATHINFO_EXTENSION);
-        $logo = 'logo_' . $id_toko . '_' . time() . '.' . $ext;
-        move_uploaded_file($_FILES['logo_toko']['tmp_name'], UPLOAD_DIR . $logo);
+        $allowed_ext = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+        $ext = strtolower(pathinfo($_FILES['logo_toko']['name'], PATHINFO_EXTENSION));
+        $finfo = finfo_open(FILEINFO_MIME_TYPE);
+        $mime = finfo_file($finfo, $_FILES['logo_toko']['tmp_name']);
+        finfo_close($finfo);
+        $allowed_mime = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+        $logo = null;
+        if (in_array($ext, $allowed_ext) && in_array($mime, $allowed_mime) && $_FILES['logo_toko']['size'] <= 5 * 1024 * 1024) {
+            $logo = 'logo_' . $id_toko . '_' . time() . '.' . $ext;
+            move_uploaded_file($_FILES['logo_toko']['tmp_name'], UPLOAD_DIR . $logo);
+        }
+        if (!$logo) { header('Location: admin.php?status=error&msg=Format+file+tidak+valid&tab=pengaturan'); exit; }
         $query = 'UPDATE toko SET nama_toko=?, kontak_wa=?, deskripsi_landing=?, logo=? WHERE id_toko=?';
         $params = [$nama_toko, $wa, $desc, $logo, $id_toko];
         $_SESSION['nama_toko'] = $nama_toko;

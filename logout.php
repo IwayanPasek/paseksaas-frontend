@@ -12,7 +12,16 @@ if (ini_get('session.use_cookies')) {
     setcookie(session_name(), '', time() - 42000, $p['path'], $p['domain'], $p['secure'], $p['httponly']);
 }
 
-// Clear remember-me cookies
+// Clear remember-me token (unified secure cookie)
+setcookie('remember_token', '', [
+    'expires'  => time() - 42000,
+    'path'     => '/',
+    'secure'   => true,
+    'httponly'  => true,
+    'samesite' => 'Strict',
+]);
+
+// Clear legacy cookies (if any remain from old code)
 setcookie('remember_master', '', time() - 42000, '/');
 setcookie('remember_tenant', '', time() - 42000, '/');
 
