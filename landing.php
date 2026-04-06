@@ -11,6 +11,17 @@ require_once __DIR__ . '/includes/config.php';
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pasek SaaS — Buat Toko Online dengan Asisten AI</title>
     
+    <!-- SEO & OGP Meta Tags -->
+    <meta name="description" content="PasekSaaS adalah platform pembuatan toko online cerdas. Bangun etalase digital Anda seketika, lengkap dengan otomatisasi Asisten AI untuk melayani pelanggan 24/7.">
+    <meta name="keywords" content="paseksaas, buat toko online, ai e-commerce, asisten ai, toko digital, jualan online, platform saas indonesia">
+    <meta property="og:title" content="Pasek SaaS — Buat Toko Online dengan Asisten AI">
+    <meta property="og:description" content="Platform pembuatan toko online cerdas dengan otomatisasi Asisten AI terintegrasi. Bangun toko Anda hari ini!">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://websitewayan.my.id">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Pasek SaaS — Buat Toko Online dengan Asisten AI">
+    <meta name="twitter:description" content="Platform pembuatan toko online cerdas dengan otomatisasi Asisten AI terintegrasi.">
+    
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>

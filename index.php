@@ -92,5 +92,6 @@ $reactData = [
 renderReactShell(
     htmlspecialchars($toko['nama_toko']) . ' — Pasek SaaS',
     'STORE_DATA',
-    $reactData
+    $reactData,
+    $desc
 );

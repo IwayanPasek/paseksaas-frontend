@@ -23,16 +23,30 @@ function getViteAssets(): array {
 /**
  * Render the standard HTML shell for a React page.
  */
-function renderReactShell(string $title, string $windowVar, array $data): void {
+function renderReactShell(string $title, string $windowVar, array $data, string $seoDesc = ''): void {
     $assets = getViteAssets();
-    $jsonData = json_encode($data, JSON_UNESCAPED_UNICODE);
+    $jsonData = json_encode($data, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP);
+    $safeTitle = htmlspecialchars($title);
+    $safeDesc = htmlspecialchars($seoDesc ?: 'E-Commerce Platform & AI Assistant powered by PasekSaaS');
+    $currentUrl = htmlspecialchars("https://" . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI']);
     ?>
 <!DOCTYPE html>
 <html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= htmlspecialchars($title) ?></title>
+    <title><?= $safeTitle ?></title>
+    
+    <!-- SEO & Open Graph Meta Tags -->
+    <meta name="description" content="<?= $safeDesc ?>">
+    <meta property="og:title" content="<?= $safeTitle ?>">
+    <meta property="og:description" content="<?= $safeDesc ?>">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="<?= $currentUrl ?>">
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="<?= $safeTitle ?>">
+    <meta name="twitter:description" content="<?= $safeDesc ?>">
+    
     <script>window.<?= $windowVar ?> = <?= $jsonData ?>;</script>
     <?php foreach ($assets['css'] as $c): ?><link rel="stylesheet" href="<?= $c ?>"><?php endforeach; ?>
     <style>body { background-color: #fafafa; margin: 0; font-family: 'Inter', system-ui, sans-serif; }</style>
