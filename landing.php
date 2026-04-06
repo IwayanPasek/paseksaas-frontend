@@ -149,19 +149,19 @@ require_once __DIR__ . '/includes/config.php';
             
             <div class="flex items-center gap-5">
                 <a href="login.php" class="text-sm font-medium text-neutral-400 hover:text-white transition-colors hidden sm:block">Masuk</a>
-                <a href="login.php" class="px-4 py-2 bg-white text-black text-sm font-medium rounded-md hover:bg-neutral-200 transition-colors shadow-[0_0_15px_rgba(255,255,255,0.15)]">Buka Toko</a>
+                <a href="login.php" class="px-4 py-2 bg-white text-black text-sm font-medium rounded-md hover:bg-neutral-200 transition-colors shadow-[0_0_15px_rgba(255,255,255,0.15)]">Buka Toko Gratis</a>
             </div>
         </div>
     </nav>
 
     <!-- Hero Section -->
     <section class="pt-40 pb-16 px-6 relative flex flex-col items-center text-center">
-        <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bento-card text-xs font-medium text-neutral-300 mb-8 reveal shadow-lg backdrop-blur-xl border border-white/10">
+        <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bento-card text-xs font-medium text-neutral-300 mb-8 reveal shadow-lg backdrop-blur-xl border border-indigo-500/30">
             <span class="relative flex h-2 w-2">
               <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
               <span class="relative inline-flex rounded-full h-2 w-2 bg-indigo-500"></span>
             </span>
-            PasekSaaS 3.1.0 (Next-Gen E-Commerce)
+            <span class="text-indigo-300 font-semibold text-[13px]">Akses Beta Terbuka: Buat Toko 100% Gratis</span>
         </div>
         
         <h1 class="font-display text-5xl md:text-7xl font-bold tracking-tight mb-8 leading-[1.05] max-w-4xl reveal delay-100">
@@ -174,7 +174,7 @@ require_once __DIR__ . '/includes/config.php';
         
         <div class="flex flex-col sm:flex-row items-center justify-center gap-4 reveal delay-200">
             <a href="login.php" class="w-full sm:w-auto px-6 py-3 bg-white text-black font-medium tracking-wide rounded-md hover:bg-neutral-200 transition-colors text-base flex items-center justify-center gap-2">
-                Mulai Membangun
+                Mulai Sekarang (Gratis)
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
             </a>
             <a href="https://iwayanpasek.websitewayan.my.id" target="_blank" class="w-full sm:w-auto px-6 py-3 bg-neutral-900 border border-neutral-800 text-white font-medium rounded-md hover:bg-neutral-800 transition-colors text-base flex items-center justify-center gap-2 group">
