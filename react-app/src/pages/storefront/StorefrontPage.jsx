@@ -37,35 +37,35 @@ export default function StorefrontPage() {
   });
 
   return (
-    <div className={`min-h-screen bg-neutral-50 font-sans text-neutral-700 ${totalItems > 0 ? 'pb-24' : 'pb-0'}`}>
+    <div className={`min-h-screen bg-[#0A0A0A] font-sans text-neutral-300 selection:bg-neutral-800 selection:text-white ${totalItems > 0 ? 'pb-24' : 'pb-0'}`}>
       <Navbar scrolled={isScrolled} />
       <Hero onChat={() => setChatOpen(true)} productCount={prods.length} />
 
-      <section id="katalog" className="bg-white py-20 px-6 relative z-20">
+      <section id="katalog" className="py-20 px-6 relative z-20 border-t border-neutral-900 border-b">
         <div className="max-w-6xl mx-auto">
           <div className="mb-8 flex flex-col md:flex-row justify-between items-center md:items-end gap-6 text-center md:text-left">
             <div className="flex-1 w-full">
-              <span className="text-neutral-400 font-medium text-xs tracking-widest uppercase mb-1.5 block">Katalog Layanan</span>
-              <h2 className="text-2xl md:text-3xl font-bold text-neutral-900 tracking-tight">Pilih Layanan Kami</h2>
+              <span className="text-neutral-500 font-medium text-xs tracking-widest uppercase mb-1.5 block">Katalog Layanan</span>
+              <h2 className="text-2xl md:text-3xl font-bold text-white tracking-tight">Pilih Layanan Kami</h2>
             </div>
             <div className="w-full md:w-72 relative group">
-              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-neutral-300 group-focus-within:text-neutral-500 transition-colors" size={16} />
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-neutral-500 group-focus-within:text-neutral-300 transition-colors" size={16} />
               <input type="text" placeholder="Cari produk atau layanan..."
                 value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-neutral-50 border border-neutral-200 rounded-xl py-3 pl-10 pr-4 text-sm outline-none focus:border-neutral-400 focus:bg-white transition-all" />
-              {searchQuery && <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs text-neutral-400">{filtered.length} hasil</span>}
+                className="w-full bg-[#0A0A0A] border border-neutral-800 rounded-xl py-3 pl-10 pr-4 text-sm text-white outline-none focus:border-neutral-600 transition-all placeholder-neutral-600" />
+              {searchQuery && <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs text-neutral-500">{filtered.length} hasil</span>}
             </div>
           </div>
 
           {cats.length > 0 && (
-            <div className="flex gap-1.5 overflow-x-auto pb-6 no-scrollbar sticky top-[60px] z-30 bg-white/95 backdrop-blur-sm pt-2">
+            <div className="flex gap-1.5 overflow-x-auto pb-6 no-scrollbar sticky top-[60px] z-30 bg-[#0A0A0A]/95 backdrop-blur-md pt-2">
               <button onClick={() => setSelectedCat('all')}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${selectedCat === 'all' ? 'bg-neutral-900 text-white' : 'bg-neutral-100 text-neutral-500 hover:bg-neutral-200'}`}>
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${selectedCat === 'all' ? 'bg-white text-neutral-900' : 'glass-card text-neutral-400 hover:text-white'}`}>
                 Semua
               </button>
               {cats.map(c => (
                 <button key={c.id_kategori} onClick={() => setSelectedCat(c.id_kategori)}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${selectedCat == c.id_kategori ? 'bg-neutral-900 text-white' : 'bg-neutral-100 text-neutral-500 hover:bg-neutral-200'}`}>
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${selectedCat == c.id_kategori ? 'bg-white text-neutral-900' : 'glass-card text-neutral-400 hover:text-white'}`}>
                   {c.nama_kategori}
                 </button>
               ))}
@@ -76,10 +76,10 @@ export default function StorefrontPage() {
             <AnimatePresence mode="popLayout">
               {filtered.length === 0 ? (
                 <motion.div layout initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                  className="col-span-full text-center py-16 card rounded-2xl">
-                  <Filter size={40} className="mx-auto text-neutral-300 mb-3" />
-                  <div className="text-neutral-500 font-medium text-base">Tidak ditemukan.</div>
-                  <p className="text-neutral-400 text-sm mt-1">Coba kata kunci lain.</p>
+                  className="col-span-full text-center py-16 glass-card rounded-2xl">
+                  <Filter size={40} className="mx-auto text-neutral-600 mb-3" />
+                  <div className="text-neutral-300 font-medium text-base">Tidak ditemukan.</div>
+                  <p className="text-neutral-500 text-sm mt-1">Coba kata kunci lain.</p>
                 </motion.div>
               ) : (
                 filtered.map(p => (
@@ -97,11 +97,11 @@ export default function StorefrontPage() {
 
       <FaqSection items={faqs} openIdx={openFaq} onToggle={(i) => setOpenFaq(openFaq === i ? null : i)} />
 
-      <footer className="bg-neutral-950 text-white py-14 px-6 text-center relative z-10">
+      <footer className="bg-[#0A0A0A] border-t border-neutral-900 py-14 px-6 text-center relative z-10">
         <LogoAvatar logo={S.logo} name={S.nama_toko} size="lg" className="bg-white text-neutral-900 mx-auto mb-4" />
-        <h4 className="font-semibold text-base mb-1.5">{S.nama_toko}</h4>
-        <p className="text-white/40 text-sm mb-8">Pilihan terbaik untuk kebutuhan Anda.</p>
-        <p className="text-white/20 text-[10px] font-medium uppercase tracking-[0.25em]">&copy; {new Date().getFullYear()} Pasek SaaS Engine</p>
+        <h4 className="font-semibold text-base mb-1.5 text-white">{S.nama_toko}</h4>
+        <p className="text-neutral-500 text-sm mb-8">Pilihan terbaik untuk kebutuhan Anda.</p>
+        <p className="text-neutral-600 text-[10px] font-medium uppercase tracking-[0.25em]">&copy; {new Date().getFullYear()} Pasek SaaS Engine</p>
       </footer>
 
       <AnimatePresence>{cartOpen && <CartSheet cart={cart} open={cartOpen} onClose={() => setCartOpen(false)} onQty={updateQty} total={totalPrice} onCheckout={checkoutWA} />}</AnimatePresence>
@@ -111,12 +111,12 @@ export default function StorefrontPage() {
           <motion.div initial={{ y: 100, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 100, opacity: 0 }}
             transition={{ type: 'spring', damping: 25 }}
             onClick={() => setCartOpen(true)}
-            className="fixed bottom-4 left-4 right-4 md:left-1/2 md:-translate-x-1/2 md:w-[500px] bg-neutral-900 text-white p-3.5 rounded-xl shadow-2xl z-[60] flex justify-between items-center cursor-pointer active:scale-[0.99] transition-transform">
+            className="fixed bottom-4 left-4 right-4 md:left-1/2 md:-translate-x-1/2 md:w-[500px] bg-neutral-900 border border-neutral-800 text-white p-3.5 rounded-xl shadow-[0_0_30px_rgba(0,0,0,0.5)] z-[60] flex justify-between items-center cursor-pointer active:scale-[0.99] transition-transform">
             <div className="flex flex-col">
-              <span className="text-[10px] font-medium bg-white/15 px-2 py-0.5 rounded-md w-fit uppercase tracking-wider mb-0.5">{totalItems} Item</span>
+              <span className="text-[10px] font-medium bg-white/10 px-2 py-0.5 rounded-md w-fit uppercase tracking-wider mb-0.5">{totalItems} Item</span>
               <span className="font-bold text-base">Rp {fmt(totalPrice)}</span>
             </div>
-            <div className="flex items-center gap-2 font-medium text-sm bg-white text-neutral-900 px-4 py-2.5 rounded-lg">
+            <div className="flex items-center gap-2 font-medium text-sm bg-white hover:bg-neutral-200 text-neutral-900 px-4 py-2.5 rounded-lg transition-colors">
               Lihat Keranjang <ShoppingBag size={14} />
             </div>
           </motion.div>

@@ -7,12 +7,12 @@ export default function ChatBubble({ msg }) {
   return (
     <div className={`flex flex-col gap-2 w-full animate-slide-up ${isUser ? 'items-end' : 'items-start'}`}>
       <div className={`flex gap-2 max-w-[85%] ${isUser ? 'flex-row-reverse' : ''}`}>
-        <div className={`w-6 h-6 rounded-md flex items-center justify-center flex-shrink-0 text-[10px] font-medium ${isUser ? 'bg-neutral-200 text-neutral-600' : 'bg-neutral-900 text-white'}`}>
+        <div className={`w-6 h-6 rounded-md flex items-center justify-center flex-shrink-0 text-[10px] font-medium ${isUser ? 'bg-neutral-800 text-neutral-400' : 'bg-white text-black'}`}>
           {isUser ? 'U' : <Sparkles size={11} />}
         </div>
         <div className={`p-3 text-[13px] leading-relaxed ${isUser
-          ? 'bg-neutral-900 text-white rounded-2xl rounded-tr-sm'
-          : 'bg-white text-neutral-700 rounded-2xl rounded-tl-sm border border-neutral-200'}`}>
+          ? 'bg-neutral-800 text-white rounded-2xl rounded-tr-sm border border-neutral-700'
+          : 'bg-neutral-900 text-neutral-200 rounded-2xl rounded-tl-sm border border-neutral-800'}`}>
           {msg.text.split('\n').map((line, i, arr) => (
             <span key={i}>{line}{i < arr.length - 1 && <br />}</span>
           ))}
@@ -22,12 +22,12 @@ export default function ChatBubble({ msg }) {
       {msg.products?.length > 0 && (
         <div className="flex gap-2 max-w-[90%] pl-8 overflow-x-auto no-scrollbar pb-1">
           {msg.products.map(p => (
-            <div key={p.id_produk} className="card p-2.5 rounded-lg w-[170px] shrink-0">
+            <div key={p.id_produk} className="glass-card p-2.5 rounded-lg w-[170px] shrink-0 border-neutral-800 bg-[#0A0A0A]">
               {p.foto_produk && (
                 <img src={`/assets/img/produk/${p.foto_produk}`}
-                  className="w-full h-[72px] object-cover rounded-md mb-2 bg-neutral-100" alt={p.nama_produk} />
+                  className="w-full h-[72px] object-cover rounded-md mb-2 bg-neutral-900" alt={p.nama_produk} />
               )}
-              <div className="font-medium text-xs text-neutral-900 line-clamp-1 mb-0.5">{p.nama_produk}</div>
+              <div className="font-medium text-xs text-white line-clamp-1 mb-0.5">{p.nama_produk}</div>
               <div className="font-semibold text-neutral-500 text-xs">Rp {fmt(p.harga)}</div>
             </div>
           ))}
