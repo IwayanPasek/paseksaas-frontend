@@ -20,7 +20,7 @@ $pdo = getDB();
 if (isset($_POST['add_category'])) {
     if (!csrfVerify()) { header('Location: admin.php?status=error&msg=Token+CSRF+tidak+valid'); exit; }
     $stmt = $pdo->prepare('INSERT INTO kategori (id_toko, nama_kategori) VALUES (?, ?)');
-    $stmt->execute([$id_toko, htmlspecialchars($_POST['nama_kategori'])]);
+    $stmt->execute([$id_toko, trim($_POST['nama_kategori'])]);
     header('Location: admin.php?status=success&msg=Kategori+Ditambahkan&tab=kategori');
     exit;
 }
@@ -38,9 +38,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_product'])) {
     if (!csrfVerify()) { header('Location: admin.php?status=error&msg=Token+CSRF+tidak+valid'); exit; }
 
     $id_prod  = !empty($_POST['id_produk']) ? (int) $_POST['id_produk'] : null;
-    $nama     = htmlspecialchars($_POST['nama_produk']);
+    $nama     = trim($_POST['nama_produk']);
     $harga    = (int) $_POST['harga'];
-    $desc     = htmlspecialchars($_POST['deskripsi']);
+    $desc     = trim($_POST['deskripsi']);
     $id_cat   = !empty($_POST['id_kategori']) ? (int) $_POST['id_kategori'] : null;
     $nama_file = !empty($_POST['foto_lama']) ? $_POST['foto_lama'] : 'default.jpg';
 
@@ -83,7 +83,7 @@ if (isset($_GET['hapus_prod'])) {
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_persona'])) {
     if (!csrfVerify()) { header('Location: admin.php?status=error&msg=Token+CSRF+tidak+valid'); exit; }
     $pdo->prepare('UPDATE toko SET ai_persona_prompt = ?, ai_gaya_bahasa = ? WHERE id_toko = ?')
-        ->execute([htmlspecialchars($_POST['ai_persona_prompt']), $_POST['ai_gaya_bahasa'], $id_toko]);
+        ->execute([trim($_POST['ai_persona_prompt']), $_POST['ai_gaya_bahasa'], $id_toko]);
     header('Location: admin.php?status=success&msg=Karakter+AI+Diperbarui&tab=persona');
     exit;
 }
@@ -92,7 +92,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_persona'])) {
 if (isset($_POST['add_faq'])) {
     if (!csrfVerify()) { header('Location: admin.php?status=error&msg=Token+CSRF+tidak+valid'); exit; }
     $pdo->prepare('INSERT INTO faq_toko (id_toko, pertanyaan, jawaban) VALUES (?, ?, ?)')
-        ->execute([$id_toko, htmlspecialchars($_POST['pertanyaan']), htmlspecialchars($_POST['jawaban'])]);
+        ->execute([$id_toko, trim($_POST['pertanyaan']), trim($_POST['jawaban'])]);
     header('Location: admin.php?status=success&msg=FAQ+Ditambahkan&tab=persona');
     exit;
 }
@@ -108,9 +108,9 @@ if (isset($_GET['del_faq'])) {
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_profil'])) {
     if (!csrfVerify()) { header('Location: admin.php?status=error&msg=Token+CSRF+tidak+valid'); exit; }
 
-    $nama_toko = htmlspecialchars($_POST['nama_toko']);
+    $nama_toko = trim($_POST['nama_toko']);
     $wa = preg_replace('/[^0-9]/', '', $_POST['kontak_wa']);
-    $desc = htmlspecialchars($_POST['deskripsi_landing']);
+    $desc = trim($_POST['deskripsi_landing']);
 
     $query = 'UPDATE toko SET nama_toko=?, kontak_wa=?, deskripsi_landing=? WHERE id_toko=?';
     $params = [$nama_toko, $wa, $desc, $id_toko];

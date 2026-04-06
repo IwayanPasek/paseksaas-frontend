@@ -24,17 +24,17 @@ export default function PengaturanTab({ csrfToken }) {
 
           <div className="space-y-1.5">
             <label className="text-[10px] font-medium uppercase tracking-widest text-neutral-400">Nama Toko / Bisnis</label>
-            <input type="text" name="nama_toko" defaultValue={adminData.toko.nama_toko} required className="w-full bg-neutral-50 border border-neutral-200 focus:border-neutral-400 rounded-xl px-4 py-3.5 text-sm outline-none transition-all" />
+            <input type="text" name="nama_toko" defaultValue={adminData.toko?.nama_toko || ''} required className="w-full bg-neutral-50 border border-neutral-200 focus:border-neutral-400 rounded-xl px-4 py-3.5 text-sm outline-none transition-all" />
           </div>
 
           <div className="space-y-1.5">
             <label className="text-[10px] font-medium uppercase tracking-widest text-neutral-400">Nomor WhatsApp (Penerima Pesanan)</label>
-            <input type="text" name="kontak_wa" defaultValue={adminData.toko.kontak_wa} required className="w-full bg-neutral-50 border border-neutral-200 focus:border-neutral-400 rounded-xl px-4 py-3.5 text-sm outline-none transition-all" />
+            <input type="text" name="kontak_wa" defaultValue={adminData.toko?.kontak_wa || ''} required className="w-full bg-neutral-50 border border-neutral-200 focus:border-neutral-400 rounded-xl px-4 py-3.5 text-sm outline-none transition-all" />
           </div>
 
           <div className="space-y-1.5">
             <label className="text-[10px] font-medium uppercase tracking-widest text-neutral-400">Deskripsi Utama (Landing Page)</label>
-            <textarea name="deskripsi_landing" defaultValue={adminData.toko.deskripsi_landing} rows="3" placeholder="Teks sambutan marketing..." className="w-full bg-neutral-50 border border-neutral-200 focus:border-neutral-400 rounded-xl p-4 text-sm outline-none transition-all resize-none" />
+            <textarea name="deskripsi_landing" defaultValue={adminData.toko?.deskripsi_landing || ''} rows="3" placeholder="Teks sambutan marketing..." className="w-full bg-neutral-50 border border-neutral-200 focus:border-neutral-400 rounded-xl p-4 text-sm outline-none transition-all resize-none" />
           </div>
 
           <button type="submit" className="w-full py-3.5 bg-neutral-900 text-white rounded-xl font-semibold hover:bg-neutral-800 transition-all active:scale-[0.98] flex items-center justify-center gap-2">

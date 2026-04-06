@@ -19,7 +19,7 @@ export default function PersonaTab({ csrfToken }) {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-[10px] font-medium uppercase tracking-widest text-neutral-500 mb-1.5">Gaya Bahasa</label>
-              <select name="ai_gaya_bahasa" defaultValue={adminData.toko.ai_gaya_bahasa} className="w-full bg-white/10 border border-white/15 rounded-xl px-4 py-3 text-sm text-white outline-none cursor-pointer appearance-none">
+              <select name="ai_gaya_bahasa" defaultValue={adminData.toko?.ai_gaya_bahasa || 'formal'} className="w-full bg-white/10 border border-white/15 rounded-xl px-4 py-3 text-sm text-white outline-none cursor-pointer appearance-none">
                 <option value="formal" className="text-neutral-900">👔 Formal & Sopan</option>
                 <option value="santai" className="text-neutral-900">🤙 Santai & Akrab</option>
                 <option value="profesional" className="text-neutral-900">💼 Profesional Bisnis</option>
@@ -28,7 +28,7 @@ export default function PersonaTab({ csrfToken }) {
             </div>
             <div>
               <label className="block text-[10px] font-medium uppercase tracking-widest text-neutral-500 mb-1.5">Instruksi Karakter</label>
-              <textarea name="ai_persona_prompt" defaultValue={adminData.toko.ai_persona_prompt} rows="2" placeholder="Contoh: Panggil pelanggan dengan Kakak..." className="w-full bg-white/10 border border-white/15 rounded-xl px-4 py-3 text-sm text-white outline-none resize-none" />
+              <textarea name="ai_persona_prompt" defaultValue={adminData.toko?.ai_persona_prompt || ''} rows="2" placeholder="Contoh: Panggil pelanggan dengan Kakak..." className="w-full bg-white/10 border border-white/15 rounded-xl px-4 py-3 text-sm text-white outline-none resize-none" />
             </div>
           </div>
           <button type="submit" className="px-6 py-2.5 bg-white text-neutral-900 rounded-lg font-semibold text-sm hover:bg-neutral-100 transition-all active:scale-[0.98]">Update Karakter</button>
@@ -46,8 +46,8 @@ export default function PersonaTab({ csrfToken }) {
             ? <p className="text-neutral-400 text-sm text-center py-6">Belum ada FAQ khusus.</p>
             : adminData.faq.map(f => (
               <div key={f.id_faq} className="bg-neutral-50 p-4 rounded-xl border border-neutral-100 relative group">
-                <p className="font-medium text-neutral-900 text-sm mb-1">Q: {f.pertanyaan}</p>
-                <p className="text-sm text-neutral-500">A: {f.jawaban}</p>
+                <p className="font-medium text-neutral-900 text-sm mb-1">Q: {f.pertanyaan || '(Kosong)'}</p>
+                <p className="text-sm text-neutral-500">A: {f.jawaban || '(Kosong)'}</p>
                 <a href={`admin.php?del_faq=${f.id_faq}`} onClick={(e) => !confirm('Hapus FAQ?') && e.preventDefault()} className="absolute top-3 right-3 text-neutral-300 hover:text-danger-500 transition-colors"><Trash2 size={14} /></a>
               </div>
             ))}

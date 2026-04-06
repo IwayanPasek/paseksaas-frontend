@@ -35,9 +35,9 @@ export default function FormLayananTab({ isEditing, editForm, onCancelEdit, csrf
 
           <div className="space-y-1.5">
             <label className="text-[10px] font-medium uppercase tracking-widest text-neutral-400">Kategori</label>
-            <select name="id_kategori" required className="w-full bg-neutral-50 p-3.5 rounded-xl outline-none border border-neutral-200 focus:border-neutral-400 transition-all cursor-pointer text-sm appearance-none">
+            <select name="id_kategori" required defaultValue={editForm.id_kategori || ''} className="w-full bg-neutral-50 p-3.5 rounded-xl outline-none border border-neutral-200 focus:border-neutral-400 transition-all cursor-pointer text-sm appearance-none">
               <option value="">-- Pilih Kategori --</option>
-              {adminData.kategori.map(c => <option key={c.id_kategori} value={c.id_kategori} selected={editForm.id_kategori == c.id_kategori}>{c.nama_kategori}</option>)}
+              {adminData.kategori.map(c => <option key={c.id_kategori} value={c.id_kategori}>{c.nama_kategori}</option>)}
             </select>
           </div>
 

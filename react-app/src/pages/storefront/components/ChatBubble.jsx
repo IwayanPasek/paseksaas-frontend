@@ -13,7 +13,7 @@ export default function ChatBubble({ msg }) {
         <div className={`p-3 text-[13px] leading-relaxed ${isUser
           ? 'bg-neutral-900 text-white rounded-2xl rounded-tr-sm'
           : 'bg-white text-neutral-700 rounded-2xl rounded-tl-sm border border-neutral-200'}`}>
-          {msg.text.split('\\n').map((line, i, arr) => (
+          {msg.text.split('\n').map((line, i, arr) => (
             <span key={i}>{line}{i < arr.length - 1 && <br />}</span>
           ))}
         </div>

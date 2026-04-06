@@ -44,8 +44,11 @@ export default function FaqSection({ items, openIdx, onToggle }) {
                                         animate={{ height: 'auto', opacity: 1 }}
                                         exit={{ height: 0, opacity: 0 }}
                                         transition={{ duration: 0.2 }}
-                                        className="px-4 pb-4 text-sm text-neutral-500 leading-relaxed">
+                                        style={{ overflow: 'hidden' }}
+                                        className="text-sm text-neutral-500 leading-relaxed">
+                                        <div className="px-4 pb-4">
                                         {f.jawaban}
+                                        </div>
                                     </motion.div>
                                 )}
                             </AnimatePresence>
