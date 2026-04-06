@@ -12,6 +12,46 @@ require_once __DIR__ . '/includes/vite.php';
 $id_toko = requireTenant();
 $pdo = getDB();
 
+// ── WebP Optimization Helper (Resizes to max width 800px and converts to WebP) ──
+function optimizeToWebp(string $sourcePath, string $destPath, int $maxWidth = 800, int $quality = 85): bool {
+    if (!extension_loaded('gd')) return false;
+    $info = @getimagesize($sourcePath);
+    if (!$info) return false;
+    $mime = $info['mime'];
+
+    switch ($mime) {
+        case 'image/jpeg': $img = @imagecreatefromjpeg($sourcePath); break;
+        case 'image/png':  $img = @imagecreatefrompng($sourcePath); break;
+        case 'image/webp': $img = @imagecreatefromwebp($sourcePath); break;
+        case 'image/gif':  $img = @imagecreatefromgif($sourcePath); break;
+        default: return false;
+    }
+    if (!$img) return false;
+
+    $width = imagesx($img);
+    $height = imagesy($img);
+
+    if ($width > $maxWidth) {
+        $newWidth = $maxWidth;
+        $newHeight = (int)(($maxWidth / $width) * $height);
+        $newImg = imagecreatetruecolor($newWidth, $newHeight);
+        if ($mime == 'image/png' || $mime == 'image/gif') {
+            imagealphablending($newImg, false);
+            imagesavealpha($newImg, true);
+            $transparent = imagecolorallocatealpha($newImg, 255, 255, 255, 127);
+            imagefilledrectangle($newImg, 0, 0, $newWidth, $newHeight, $transparent);
+        }
+        imagecopyresampled($newImg, $img, 0, 0, 0, 0, $newWidth, $newHeight, $width, $height);
+        imagedestroy($img);
+        $img = $newImg;
+    }
+    
+    // Convert to webp
+    $success = @imagewebp($img, $destPath, $quality);
+    imagedestroy($img);
+    return $success;
+}
+
 // ════════════════════════════════════════════════════
 //  MUTATIONS (POST/GET actions)
 // ════════════════════════════════════════════════════
@@ -59,8 +99,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_product'])) {
             if ($nama_file !== 'default.jpg' && file_exists(UPLOAD_DIR . $nama_file)) {
                 @unlink(UPLOAD_DIR . $nama_file);
             }
-            $nama_file = 'prod_' . time() . '_' . bin2hex(random_bytes(4)) . '.' . $ext;
-            move_uploaded_file($_FILES['foto']['tmp_name'], UPLOAD_DIR . $nama_file);
+            $webp_file = 'prod_' . time() . '_' . bin2hex(random_bytes(4)) . '.webp';
+            if (optimizeToWebp($_FILES['foto']['tmp_name'], UPLOAD_DIR . $webp_file)) {
+                $nama_file = $webp_file;
+            } else {
+                $nama_file = 'prod_' . time() . '_' . bin2hex(random_bytes(4)) . '.' . $ext;
+                move_uploaded_file($_FILES['foto']['tmp_name'], UPLOAD_DIR . $nama_file);
+            }
         }
     }
 
@@ -136,8 +181,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_profil'])) {
         $allowed_mime = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
         $logo = null;
         if (in_array($ext, $allowed_ext) && in_array($mime, $allowed_mime) && $_FILES['logo_toko']['size'] <= 5 * 1024 * 1024) {
-            $logo = 'logo_' . $id_toko . '_' . time() . '.' . $ext;
-            move_uploaded_file($_FILES['logo_toko']['tmp_name'], UPLOAD_DIR . $logo);
+            $webp_logo = 'logo_' . $id_toko . '_' . time() . '.webp';
+            if (optimizeToWebp($_FILES['logo_toko']['tmp_name'], UPLOAD_DIR . $webp_logo, 400)) { // Logo is smaller, max 400px
+                $logo = $webp_logo;
+            } else {
+                $logo = 'logo_' . $id_toko . '_' . time() . '.' . $ext;
+                move_uploaded_file($_FILES['logo_toko']['tmp_name'], UPLOAD_DIR . $logo);
+            }
         }
         if (!$logo) { header('Location: admin.php?status=error&msg=Format+file+tidak+valid&tab=pengaturan'); exit; }
         $query = 'UPDATE toko SET nama_toko=?, kontak_wa=?, deskripsi_landing=?, logo=? WHERE id_toko=?';
