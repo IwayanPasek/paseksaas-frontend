@@ -35,8 +35,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['register_tenant'])) {
     exit;
 }
 
+// ── Approve Tenant ──
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['approve_tenant'])) {
+    if (!csrfVerify()) { header('Location: master.php?status=error&msg=Token+CSRF+tidak+valid'); exit; }
+    $id = (int) $_POST['approve_tenant'];
+    $pdo->prepare("UPDATE toko SET status = 'active' WHERE id_toko = ?")->execute([$id]);
+    header('Location: master.php?status=success&msg=Tenant+Disetujui');
+    exit;
+}
+
+// ── Reject/Delete Tenant ──
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['reject_tenant'])) {
+    if (!csrfVerify()) { header('Location: master.php?status=error&msg=Token+CSRF+tidak+valid'); exit; }
+    $id = (int) $_POST['reject_tenant'];
+    $pdo->prepare("DELETE FROM toko WHERE id_toko = ?")->execute([$id]);
+    header('Location: master.php?status=success&msg=Tenant+Dihapus');
+    exit;
+}
+
 // ── Fetch tenants ──
-$tenants = $pdo->query('SELECT id_toko, nama_toko, subdomain, kontak_wa, created_at FROM toko ORDER BY id_toko DESC')->fetchAll();
+$tenants = $pdo->query('SELECT id_toko, nama_toko, email, subdomain, kontak_wa, status, created_at FROM toko ORDER BY id_toko DESC')->fetchAll();
 
 // Mask WhatsApp numbers for privacy (show first 4 + last 3 digits)
 foreach ($tenants as &$t) {

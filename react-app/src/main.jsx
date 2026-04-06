@@ -8,6 +8,7 @@ const StorefrontPage = lazy(() => import('./pages/storefront/StorefrontPage'))
 const AdminPage      = lazy(() => import('./pages/admin/AdminPage'))
 const MasterPage     = lazy(() => import('./pages/master/MasterPage'))
 const LoginPage      = lazy(() => import('./pages/login/LoginPage'))
+const RegisterPage   = lazy(() => import('./pages/login/RegisterPage'))
 
 // Minimal loading fallback
 function Loading() {
@@ -27,10 +28,11 @@ const root = document.getElementById('root')
 if (root) {
   let App
 
-  if (window.LOGIN_DATA)       App = LoginPage
-  else if (window.MASTER_DATA) App = MasterPage
-  else if (window.ADMIN_DATA)  App = AdminPage
-  else                         App = StorefrontPage
+  if (window.LOGIN_DATA)          App = LoginPage
+  else if (window.REGISTER_DATA)  App = RegisterPage
+  else if (window.MASTER_DATA)    App = MasterPage
+  else if (window.ADMIN_DATA)     App = AdminPage
+  else                            App = StorefrontPage
 
   ReactDOM.createRoot(root).render(
     <React.StrictMode>

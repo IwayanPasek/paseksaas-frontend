@@ -41,6 +41,11 @@ try {
     $toko = $stmt->fetch();
 
     if ($toko) {
+        if (($toko['status'] ?? 'active') !== 'active') {
+            http_response_code(403);
+            echo "<div style='text-align:center;font-family:Inter,sans-serif;margin-top:20vh;color:#737373;'><h1>Akses Ditangguhkan</h1><p>Toko ini sedang dalam proses peninjauan atau telah dinonaktifkan.</p></div>";
+            exit;
+        }
         $id = $toko['id_toko'];
 
         $stmt = $pdo->prepare('SELECT * FROM produk WHERE id_toko = ? ORDER BY id_produk DESC');

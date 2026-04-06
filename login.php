@@ -99,6 +99,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['api'])) {
         $_SESSION['role'] = 'master';
         $_SESSION['login_attempts'] = 0;
 
+        // Master is always active, but we check just in case
+        if (($master['status'] ?? 'active') !== 'active') {
+            echo json_encode(['status' => 'error', 'message' => 'Akun Master ditangguhkan. Hubungi tim teknis.']);
+            exit;
+        }
+
         if ($remember) {
             $token = createRememberToken($master['username'], 'master');
             setRememberCookie('remember_token', $token);
@@ -119,6 +125,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['api'])) {
         $_SESSION['nama_toko'] = $toko['nama_toko'];
         $_SESSION['role'] = 'tenant';
         $_SESSION['login_attempts'] = 0;
+
+        if (($toko['status'] ?? 'active') !== 'active') {
+            $msg = $toko['status'] === 'pending' 
+                ? 'Akun Anda sedang dalam proses peninjauan oleh Master Admin. Mohon tunggu.' 
+                : 'Akun Anda sedang ditangguhkan.';
+            echo json_encode(['status' => 'error', 'message' => $msg]);
+            exit;
+        }
 
         if ($remember) {
             $token = createRememberToken((string)$toko['id_toko'], 'tenant');
