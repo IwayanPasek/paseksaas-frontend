@@ -8,12 +8,21 @@ require_once __DIR__ . '/includes/db.php';
 require_once __DIR__ . '/includes/vite.php';
 
 // ── Detect subdomain ──
-$http_host = $_SERVER['HTTP_HOST'] ?? '';
-$parts     = explode('.', $http_host);
-$subdomain = (count($parts) >= 3) ? strtolower($parts[0]) : '';
+// SITE_DOMAIN = 'websitewayan.my.id' (3 parts)
+// Valid tenant URLs: {subdomain}.websitewayan.my.id (4+ parts)
+// Apex domain or www: websitewayan.my.id / www.websitewayan.my.id → redirect to login
+$http_host = strtolower($_SERVER['HTTP_HOST'] ?? '');
+$site_domain = strtolower(SITE_DOMAIN);
+$subdomain = '';
 
-// Redirect if not a store subdomain
-if (!$subdomain || in_array($subdomain, ['www', SITE_DOMAIN])) {
+// Check if host ends with the site domain and has a prefix
+if ($http_host !== $site_domain && str_ends_with($http_host, '.' . $site_domain)) {
+    // Extract subdomain: "tokodemo.websitewayan.my.id" → "tokodemo"
+    $subdomain = substr($http_host, 0, strlen($http_host) - strlen('.' . $site_domain));
+}
+
+// Redirect if not a valid store subdomain
+if (!$subdomain || $subdomain === 'www') {
     header('Location: login.php');
     exit;
 }

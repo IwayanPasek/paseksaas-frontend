@@ -10,7 +10,7 @@ export default function PersonaTab({ csrfToken }) {
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
       {/* AI Character */}
-      <div className="card rounded-xl p-6 md:p-8 bg-neutral-900 text-white border-neutral-800">
+      <div className="rounded-xl p-6 md:p-8 bg-neutral-900 text-white border border-neutral-800 shadow-sm">
         <h3 className="font-semibold text-xl flex items-center gap-2.5 mb-1.5"><Sparkles size={18} className="text-neutral-400" /> Otak AI Anda</h3>
         <p className="text-neutral-400 text-sm mb-5">Atur gaya bicara AI dan tambahkan FAQ agar AI pintar menjawab.</p>
         <form method="POST" action="admin.php" className="space-y-4">
@@ -19,16 +19,16 @@ export default function PersonaTab({ csrfToken }) {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-[10px] font-medium uppercase tracking-widest text-neutral-500 mb-1.5">Gaya Bahasa</label>
-              <select name="ai_gaya_bahasa" defaultValue={adminData.toko?.ai_gaya_bahasa || 'formal'} className="w-full bg-white/10 border border-white/15 rounded-xl px-4 py-3 text-sm text-white outline-none cursor-pointer appearance-none">
-                <option value="formal" className="text-neutral-900">👔 Formal & Sopan</option>
-                <option value="santai" className="text-neutral-900">🤙 Santai & Akrab</option>
-                <option value="profesional" className="text-neutral-900">💼 Profesional Bisnis</option>
-                <option value="ramah" className="text-neutral-900">😊 Ramah & Hangat</option>
+              <select name="ai_gaya_bahasa" defaultValue={adminData.toko?.ai_gaya_bahasa || 'formal'} className="w-full bg-neutral-800 border border-neutral-700 rounded-xl px-4 py-3 text-sm text-white outline-none cursor-pointer">
+                <option value="formal" className="bg-neutral-800 text-white">👔 Formal &amp; Sopan</option>
+                <option value="santai" className="bg-neutral-800 text-white">🤙 Santai &amp; Akrab</option>
+                <option value="profesional" className="bg-neutral-800 text-white">💼 Profesional Bisnis</option>
+                <option value="ramah" className="bg-neutral-800 text-white">😊 Ramah &amp; Hangat</option>
               </select>
             </div>
             <div>
               <label className="block text-[10px] font-medium uppercase tracking-widest text-neutral-500 mb-1.5">Instruksi Karakter</label>
-              <textarea name="ai_persona_prompt" defaultValue={adminData.toko?.ai_persona_prompt || ''} rows="2" placeholder="Contoh: Panggil pelanggan dengan Kakak..." className="w-full bg-white/10 border border-white/15 rounded-xl px-4 py-3 text-sm text-white outline-none resize-none" />
+              <textarea name="ai_persona_prompt" defaultValue={adminData.toko?.ai_persona_prompt || ''} rows="2" placeholder="Contoh: Panggil pelanggan dengan Kakak..." className="w-full bg-neutral-800 border border-neutral-700 rounded-xl px-4 py-3 text-sm text-white placeholder-neutral-500 outline-none resize-none" />
             </div>
           </div>
           <button type="submit" className="px-6 py-2.5 bg-white text-neutral-900 rounded-lg font-semibold text-sm hover:bg-neutral-100 transition-all active:scale-[0.98]">Update Karakter</button>
