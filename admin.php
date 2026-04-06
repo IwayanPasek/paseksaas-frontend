@@ -12,6 +12,17 @@ require_once __DIR__ . '/includes/vite.php';
 $id_toko = requireTenant();
 $pdo = getDB();
 
+// ── Check Suspension ──
+$stmtStatus = $pdo->prepare('SELECT status FROM toko WHERE id_toko = ?');
+$stmtStatus->execute([$id_toko]);
+$status = $stmtStatus->fetchColumn();
+
+if ($status === 'suspended') {
+    session_destroy();
+    header('Location: login.php?status=error&msg=Akun+Anda+ditangguhkan.');
+    exit;
+}
+
 // ── WebP Optimization Helper (Resizes to max width 800px and converts to WebP) ──
 function optimizeToWebp(string $sourcePath, string $destPath, int $maxWidth = 800, int $quality = 85): bool {
     if (!extension_loaded('gd')) return false;
@@ -247,6 +258,7 @@ $adminData = [
     'grafik'      => $grafik,
     'tab_aktif'   => $_GET['tab'] ?? 'dashboard',
     'csrf_token'  => $csrfToken,
+    'is_impersonating' => $_SESSION['is_impersonating'] ?? false,
 ];
 
 renderReactShell(

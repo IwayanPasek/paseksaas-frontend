@@ -59,6 +59,38 @@ function setRememberCookie(string $name, string $value, int $days = 30): void {
     ]);
 }
 
+// ── Secure Impersonation Gateway ──
+if (isset($_GET['impersonate_token'])) {
+    try {
+        $pdo = getDB();
+        $token = $_GET['impersonate_token'];
+        
+        $stmt = $pdo->prepare('SELECT it.*, t.nama_toko FROM impersonation_tokens it JOIN toko t ON it.id_toko = t.id_toko WHERE it.token = ? AND it.expires_at > NOW()');
+        $stmt->execute([$token]);
+        $data = $stmt->fetch();
+
+        if ($data) {
+            // Success — Setup Tenant Session
+            session_regenerate_id(true);
+            $_SESSION['tenant_id'] = $data['id_toko'];
+            $_SESSION['nama_toko'] = $data['nama_toko'];
+            $_SESSION['role']      = 'tenant';
+            $_SESSION['is_impersonating'] = true; // Flag for UI header
+
+            // Cleanup token
+            $pdo->prepare('DELETE FROM impersonation_tokens WHERE token = ?')->execute([$token]);
+            
+            header("Location: admin.php?status=success&msg=Mode+Impersonasi+Aktif");
+            exit;
+        } else {
+            header("Location: login.php?status=error&msg=Token+impersonasi+kadaluwarsa+atau+tidak+valid.");
+            exit;
+        }
+    } catch (PDOException $e) {
+        // Fallback to normal login
+    }
+}
+
 // ── API Endpoint for React ──
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['api'])) {
     header('Content-Type: application/json');
