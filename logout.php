@@ -1,21 +1,22 @@
 <?php
+// ═══════════════════════════════════════════════════
+//  LOGOUT — Clear session + remember-me cookies
+// ═══════════════════════════════════════════════════
 session_start();
 
-// 1. Hapus semua variabel session
-$_SESSION = array();
+$_SESSION = [];
 
-// 2. Jika ingin menghapus session cookie juga (opsional tapi disarankan)
-if (ini_get("session.use_cookies")) {
-    $params = session_get_cookie_params();
-    setcookie(session_name(), '', time() - 42000,
-        $params["path"], $params["domain"],
-        $params["secure"], $params["httponly"]
-    );
+// Clear session cookie
+if (ini_get('session.use_cookies')) {
+    $p = session_get_cookie_params();
+    setcookie(session_name(), '', time() - 42000, $p['path'], $p['domain'], $p['secure'], $p['httponly']);
 }
 
-// 3. Hancurkan session
+// Clear remember-me cookies
+setcookie('remember_master', '', time() - 42000, '/');
+setcookie('remember_tenant', '', time() - 42000, '/');
+
 session_destroy();
 
-// 4. Redirect kembali ke halaman login
-header("Location: login.php");
+header('Location: login.php');
 exit;

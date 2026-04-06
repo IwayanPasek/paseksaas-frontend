@@ -1,30 +1,35 @@
 <?php
-$db_host = 'localhost';
-$db_user = 'wayan_user';
-$db_pass = 'WayanPass123!';
-$db_name = 'websitewayan_db';
+// ═══════════════════════════════════════════════════
+//  FIX ADMIN — Master password reset tool (DEV ONLY)
+//  WARNING: Remove or restrict in production!
+// ═══════════════════════════════════════════════════
+
+// Basic IP restriction — only allow localhost
+$allowed = ['127.0.0.1', '::1'];
+if (!in_array($_SERVER['REMOTE_ADDR'], $allowed)) {
+    http_response_code(403);
+    die('<h1>403 Forbidden</h1><p>Tool ini hanya bisa diakses dari server lokal.</p>');
+}
+
+require_once __DIR__ . '/includes/db.php';
 
 try {
-    $pdo = new PDO("mysql:host=$db_host;dbname=$db_name", $db_user, $db_pass);
-    
-    // 1. Kosongkan tabel master_admin
-    $pdo->exec("TRUNCATE TABLE master_admin");
-    
-    // 2. Buat Hash yang dijamin fresh oleh sistem PHP Anda sendiri
+    $pdo = getDB();
+    $pdo->exec('TRUNCATE TABLE master_admin');
+
     $username = 'pasek';
     $password = 'pasek';
     $hash = password_hash($password, PASSWORD_BCRYPT);
-    
-    // 3. Masukkan ke database
-    $stmt = $pdo->prepare("INSERT INTO master_admin (username, password) VALUES (?, ?)");
-    $stmt->execute([$username, $hash]);
-    
-    echo "<h1>Selesai!</h1>";
-    echo "User <b>$username</b> berhasil didaftarkan ulang.<br>";
-    echo "Hash yang dibuat: <code>$hash</code><br><br>";
-    echo "<a href='login.php'>Klik di sini untuk ke halaman Login</a>";
 
+    $stmt = $pdo->prepare('INSERT INTO master_admin (username, password) VALUES (?, ?)');
+    $stmt->execute([$username, $hash]);
+
+    echo "<div style='font-family:Inter,sans-serif;max-width:400px;margin:15vh auto;text-align:center;'>";
+    echo "<h2>✅ Berhasil!</h2>";
+    echo "<p>User <b>$username</b> didaftarkan ulang.</p>";
+    echo "<p style='color:#737373;font-size:12px;'>Hash: <code>$hash</code></p>";
+    echo "<a href='login.php' style='color:#171717;'>→ Ke Halaman Login</a>";
+    echo "</div>";
 } catch (Exception $e) {
-    die("Error: " . $e->getMessage());
+    die('Error: ' . $e->getMessage());
 }
-?>
