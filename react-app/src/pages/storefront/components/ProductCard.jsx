@@ -6,7 +6,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Image as ImageIcon, ShoppingCart, Sparkles, Plus, Minus } from 'lucide-react';
-import { cats, fmt } from '../lib/store';
+import { cats, fmt } from '@/lib/store';
 
 export default function ProductCard({ prod, cartItem, onAsk, onAdd, onQty, imgLoaded, onImgLoad }) {
     const catName = cats.find(c => c.id_kategori == prod.id_kategori)?.nama_kategori;

@@ -6,7 +6,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { ShoppingCart, X, Minus, Plus, MessageSquare } from 'lucide-react';
-import { fmt } from '../lib/store';
+import { fmt } from '@/lib/store';
 
 export default function CartSheet({ cart, open, onClose, onQty, total, onCheckout }) {
     if (!open || !cart.length) return null;

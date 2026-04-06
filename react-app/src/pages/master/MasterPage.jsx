@@ -15,6 +15,7 @@ export default function MasterPage() {
     if (params.has('status')) {
       const status = params.get('status');
       const msg = params.get('msg') || '';
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       if (status === 'success') setToast({ title: 'Deploy Berhasil!', message: `Node ${msg} telah aktif.`, type: 'success' });
       else setToast({ title: 'Deploy Gagal', message: msg, type: 'error' });
       setTimeout(() => setToast(null), 5000);

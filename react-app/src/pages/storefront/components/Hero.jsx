@@ -6,7 +6,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { ArrowRight, Sparkles, Zap, Clock, Package } from 'lucide-react';
-import { S } from '../lib/store';
+import { S } from '@/lib/store';
 
 const TRUST_BADGES = (count) => [
     { icon: <Zap size={13} />, text: 'AI-Powered' },

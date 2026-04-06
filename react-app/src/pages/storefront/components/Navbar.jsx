@@ -4,7 +4,7 @@
    ═══════════════════════════════════════════════════ */
 
 import React from 'react';
-import { S } from '../lib/store';
+import { S } from '@/lib/store';
 
 export default function Navbar({ scrolled }) {
     return (

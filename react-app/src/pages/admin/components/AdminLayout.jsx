@@ -53,7 +53,7 @@ export function AdminSidebar({ activeTab, setActiveTab, sidebarOpen, setSidebarO
   );
 }
 
-export function AdminHeader({ activeTab, sidebarOpen, setSidebarOpen }) {
+export function AdminHeader({ activeTab, setSidebarOpen }) {
   const current = ADMIN_MENU.find(m => m.id === activeTab);
   return (
     <header className="bg-white/90 backdrop-blur-md border-b border-neutral-200 px-5 py-3.5 flex items-center justify-between sticky top-0 z-30">

@@ -25,6 +25,7 @@ export default function AdminPage() {
     if (params.has('status')) {
       const msg = params.get('msg') || 'Operasi Berhasil';
       const type = params.get('status') === 'error' ? 'error' : 'success';
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setToast({ message: msg, type });
       setTimeout(() => setToast(null), 4000);
       window.history.replaceState({}, document.title, `admin.php?tab=${activeTab}`);

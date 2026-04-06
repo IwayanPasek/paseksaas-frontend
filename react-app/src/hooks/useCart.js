@@ -11,6 +11,7 @@ export function useCart() {
     const [cartOpen, setCartOpen] = useState(false);
 
     // Auto-tutup sheet jika keranjang kosong
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     useEffect(() => {
         if (cart.length === 0) setCartOpen(false);
     }, [cart]);

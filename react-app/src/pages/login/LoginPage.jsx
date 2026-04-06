@@ -18,7 +18,7 @@ export default function LoginPage() {
     try {
       const res = await fetch('/login.php?api=1', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(formData) });
       const data = await res.json();
-      if (data.status === 'success') window.location.href = data.redirect;
+      if (data.status === 'success') window.location.assign(data.redirect);
       else { triggerError(data.message); setIsLoading(false); }
     } catch { triggerError('Gagal terhubung ke server otorisasi.'); setIsLoading(false); }
   };

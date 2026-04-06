@@ -2,6 +2,9 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import basicSsl from '@vitejs/plugin-basic-ssl'
 import path from 'path'
+import { fileURLToPath } from 'url'
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 export default defineConfig({
   plugins: [react(), basicSsl()],
@@ -19,12 +22,15 @@ export default defineConfig({
   build: {
     rollupOptions: {
       output: {
-        manualChunks: {
-          'react-vendor': ['react', 'react-dom'],
-          'motion-vendor': ['framer-motion'],
-          'chart-vendor': ['recharts'],
-          'icons-vendor': ['lucide-react'],
-        },
+        manualChunks(id) {
+          if (id.includes('node_modules')) {
+            if (id.includes('react') || id.includes('react-dom')) return 'react-vendor';
+            if (id.includes('framer-motion')) return 'motion-vendor';
+            if (id.includes('recharts')) return 'chart-vendor';
+            if (id.includes('lucide-react')) return 'icons-vendor';
+            return 'vendor';
+          }
+        }
       },
     },
   },

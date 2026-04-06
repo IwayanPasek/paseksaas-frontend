@@ -6,7 +6,7 @@ import { CHAT_CHIPS } from '@/lib/constants';
 import ChatBubble from './ChatBubble';
 import TypingDots from './TypingDots';
 
-export default function ChatWidget({ open, onClose, messages, input, setInput, onSend, typing, onChip, totalItems }) {
+export default function ChatWidget({ onClose, messages, input, setInput, onSend, typing, onChip, totalItems }) {
   const endRef = useRef(null);
   useEffect(() => { endRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages, typing]);
 
