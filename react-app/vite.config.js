@@ -7,6 +7,10 @@ import { fileURLToPath } from 'url'
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 export default defineConfig({
+  // CRITICAL: Sets the base path for all asset URLs in the built output.
+  // Without this, dynamic imports (lazy-loaded chunks) load from /assets/
+  // instead of /react-app/dist/assets/ and get 404 errors.
+  base: '/react-app/dist/',
   plugins: [react(), basicSsl()],
   resolve: {
     alias: {

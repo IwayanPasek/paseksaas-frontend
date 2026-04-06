@@ -12,8 +12,8 @@ function getViteAssets(): array {
 
     if (is_dir(DIST_DIR)) {
         foreach (scandir(DIST_DIR) as $file) {
-            if (str_ends_with($file, '.css')) $css[] = 'react-app/dist/assets/' . $file;
-            if (str_ends_with($file, '.js'))  $js[]  = 'react-app/dist/assets/' . $file;
+            if (str_ends_with($file, '.css')) $css[] = '/react-app/dist/assets/' . $file;
+            if (str_ends_with($file, '.js'))  $js[]  = '/react-app/dist/assets/' . $file;
         }
     }
 
