@@ -50,9 +50,11 @@ export default function TenantList({ tenants, totalNodes, csrfToken }) {
         const data = await res.json();
         if (data.status === 'success') {
            window.open(`/login.php?impersonate_token=${data.token}`, '_blank');
+        } else {
+           alert(data.message || 'Gagal membuat token impersonasi.');
         }
      } catch (e) {
-        alert('Gagal membuat token impersonasi.');
+        alert('Gagal menyambung ke server.');
      }
   };
 

@@ -29,6 +29,10 @@ function masterLogAction(string $type, string $entity, ?int $id, ?string $detail
 // ── Register New Tenant ──
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['register_tenant'])) {
     if (!csrfVerify()) {
+        if (isset($_GET['api']) || isset($_POST['impersonate_tenant'])) {
+            echo json_encode(['status' => 'error', 'message' => 'Token CSRF tidak valid.']);
+            exit;
+        }
         header('Location: master.php?status=error&msg=' . urlencode('Token CSRF tidak valid.'));
         exit;
     }
@@ -53,7 +57,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['register_tenant'])) {
 
 // ── Approve Tenant ──
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['approve_tenant'])) {
-    if (!csrfVerify()) { header('Location: master.php?status=error&msg=Token+CSRF+tidak+valid'); exit; }
+    if (!csrfVerify()) { 
+        header('Location: master.php?status=error&msg=Token+CSRF+tidak+valid'); 
+        exit; 
+    }
     $id = (int) $_POST['approve_tenant'];
     $pdo->prepare("UPDATE toko SET status = 'active' WHERE id_toko = ?")->execute([$id]);
     masterLogAction('APPROVE', 'TENANT', $id);
@@ -63,7 +70,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['approve_tenant'])) {
 
 // ── Suspend Tenant ──
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['suspend_tenant'])) {
-    if (!csrfVerify()) { header('Location: master.php?status=error&msg=Token+CSRF+tidak+valid'); exit; }
+    if (!csrfVerify()) { 
+        header('Location: master.php?status=error&msg=Token+CSRF+tidak+valid'); 
+        exit; 
+    }
     $id = (int) $_POST['suspend_tenant'];
     $pdo->prepare("UPDATE toko SET status = 'suspended' WHERE id_toko = ?")->execute([$id]);
     masterLogAction('SUSPEND', 'TENANT', $id);
@@ -73,7 +83,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['suspend_tenant'])) {
 
 // ── Unsuspend Tenant ──
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['unsuspend_tenant'])) {
-    if (!csrfVerify()) { header('Location: master.php?status=error&msg=Token+CSRF+tidak+valid'); exit; }
+    if (!csrfVerify()) { 
+        header('Location: master.php?status=error&msg=Token+CSRF+tidak+valid'); 
+        exit; 
+    }
     $id = (int) $_POST['unsuspend_tenant'];
     $pdo->prepare("UPDATE toko SET status = 'active' WHERE id_toko = ?")->execute([$id]);
     masterLogAction('UNSUSPEND', 'TENANT', $id);
@@ -83,7 +96,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['unsuspend_tenant'])) 
 
 // ── Reject/Delete Tenant ──
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['reject_tenant'])) {
-    if (!csrfVerify()) { header('Location: master.php?status=error&msg=Token+CSRF+tidak+valid'); exit; }
+    if (!csrfVerify()) { 
+        header('Location: master.php?status=error&msg=Token+CSRF+tidak+valid'); 
+        exit; 
+    }
     $id = (int) $_POST['reject_tenant'];
     $pdo->prepare("DELETE FROM toko WHERE id_toko = ?")->execute([$id]);
     masterLogAction('DELETE', 'TENANT', $id, "Permanent removal");
@@ -93,7 +109,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['reject_tenant'])) {
 
 // ── Generate Impersonation Token ──
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['impersonate_tenant'])) {
-    if (!csrfVerify()) { header('Location: master.php?status=error&msg=Token+CSRF+tidak+valid'); exit; }
+    header('Content-Type: application/json');
+    if (!csrfVerify()) {
+        echo json_encode(['status' => 'error', 'message' => 'Token CSRF tidak valid.']);
+        exit;
+    }
     $id = (int) $_POST['impersonate_tenant'];
     $token = bin2hex(random_bytes(32));
     $expires = date('Y-m-d H:i:s', time() + 1800); // 30 mins

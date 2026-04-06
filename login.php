@@ -127,6 +127,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['api'])) {
     if ($master && password_verify($pass, $master['password'])) {
         session_regenerate_id(true); // Prevent session fixation
         $_SESSION['master_logged_in'] = true;
+        $_SESSION['master_id'] = $master['id_admin'] ?? 1; // ID from DB
         $_SESSION['master_username'] = $master['username'];
         $_SESSION['role'] = 'master';
         $_SESSION['login_attempts'] = 0;
