@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useDeferredValue } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Filter, Search, ShoppingBag, MessageSquare } from 'lucide-react';
+import { Filter, Search, ShoppingBag, MessageSquare, ArrowRight } from 'lucide-react';
 import { S, cats, prods, faqs, fmt } from '@/lib/store';
 import { useCart } from '@/hooks/useCart';
 import { useChat } from '@/hooks/useChat';
@@ -15,6 +15,7 @@ import LogoAvatar from '@/components/ui/LogoAvatar';
 export default function StorefrontPage() {
   const [selectedCat, setSelectedCat] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const deferredSearchQuery = useDeferredValue(searchQuery);
   const [isScrolled, setIsScrolled] = useState(false);
   const [imgLoaded, setImgLoaded] = useState({});
   const [openFaq, setOpenFaq] = useState(null);
@@ -32,12 +33,12 @@ export default function StorefrontPage() {
 
   const filtered = prods.filter(p => {
     const matchCat = selectedCat === 'all' || p.id_kategori == selectedCat;
-    const matchSearch = p.nama_produk.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchSearch = p.nama_produk.toLowerCase().includes(deferredSearchQuery.toLowerCase());
     return matchCat && matchSearch;
   });
 
   return (
-    <div className={`min-h-screen bg-[#0A0A0A] font-sans text-neutral-300 selection:bg-neutral-800 selection:text-white ${totalItems > 0 ? 'pb-24' : 'pb-0'}`}>
+    <div className={`min-h-screen bg-[#050505] font-sans text-neutral-300 selection:bg-indigo-500/30 selection:text-white pb-20 md:pb-0`}>
       <Navbar scrolled={isScrolled} />
       <Hero onChat={() => setChatOpen(true)} productCount={prods.length} />
 
@@ -52,20 +53,20 @@ export default function StorefrontPage() {
               <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-neutral-500 group-focus-within:text-neutral-300 transition-colors" size={16} />
               <input type="text" placeholder="Cari produk atau layanan..."
                 value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-[#0A0A0A] border border-neutral-800 rounded-xl py-3 pl-10 pr-4 text-sm text-white outline-none focus:border-neutral-600 transition-all placeholder-neutral-600" />
+                className="w-full bg-[#050505] border border-white/5 rounded-xl py-3 pl-10 pr-4 text-sm text-white outline-none focus:border-white/20 transition-all placeholder-neutral-600" />
               {searchQuery && <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs text-neutral-500">{filtered.length} hasil</span>}
             </div>
           </div>
 
           {cats.length > 0 && (
-            <div className="flex gap-1.5 overflow-x-auto pb-6 no-scrollbar sticky top-[60px] z-30 bg-[#0A0A0A]/95 backdrop-blur-md pt-2">
+            <div className="flex gap-2 overflow-x-auto pb-6 no-scrollbar sticky top-[60px] z-30 bg-[#050505]/90 backdrop-blur-xl pt-2">
               <button onClick={() => setSelectedCat('all')}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${selectedCat === 'all' ? 'bg-white text-neutral-900' : 'glass-card text-neutral-400 hover:text-white'}`}>
+                className={`px-4 py-2 text-sm font-medium transition-all whitespace-nowrap border-b-2 ${selectedCat === 'all' ? 'border-white text-white' : 'border-transparent text-neutral-500 hover:text-white'}`}>
                 Semua
               </button>
               {cats.map(c => (
                 <button key={c.id_kategori} onClick={() => setSelectedCat(c.id_kategori)}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${selectedCat == c.id_kategori ? 'bg-white text-neutral-900' : 'glass-card text-neutral-400 hover:text-white'}`}>
+                  className={`px-4 py-2 text-sm font-medium transition-all whitespace-nowrap border-b-2 ${selectedCat == c.id_kategori ? 'border-white text-white' : 'border-transparent text-neutral-500 hover:text-white'}`}>
                   {c.nama_kategori}
                 </button>
               ))}
@@ -97,31 +98,14 @@ export default function StorefrontPage() {
 
       <FaqSection items={faqs} openIdx={openFaq} onToggle={(i) => setOpenFaq(openFaq === i ? null : i)} />
 
-      <footer className="bg-[#0A0A0A] border-t border-neutral-900 py-14 px-6 text-center relative z-10">
+      <footer className="bg-[#050505] border-t border-white/5 py-14 px-6 text-center relative z-10 mb-16 md:mb-0">
         <LogoAvatar logo={S.logo} name={S.nama_toko} size="lg" className="bg-white text-neutral-900 mx-auto mb-4" />
         <h4 className="font-semibold text-base mb-1.5 text-white">{S.nama_toko}</h4>
-        <p className="text-neutral-500 text-sm mb-8">Pilihan terbaik untuk kebutuhan Anda.</p>
+        <p className="text-neutral-500 text-sm mb-8">E-Commerce Pintar Didukung PasekSaaS.</p>
         <p className="text-neutral-600 text-[10px] font-medium uppercase tracking-[0.25em]">&copy; {new Date().getFullYear()} Pasek SaaS Engine</p>
       </footer>
 
       <AnimatePresence>{cartOpen && <CartSheet cart={cart} open={cartOpen} onClose={() => setCartOpen(false)} onQty={updateQty} total={totalPrice} onCheckout={checkoutWA} />}</AnimatePresence>
-
-      <AnimatePresence>
-        {totalItems > 0 && !cartOpen && (
-          <motion.div initial={{ y: 100, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 100, opacity: 0 }}
-            transition={{ type: 'spring', damping: 25 }}
-            onClick={() => setCartOpen(true)}
-            className="fixed bottom-4 left-4 right-4 md:left-1/2 md:-translate-x-1/2 md:w-[500px] bg-neutral-900 border border-neutral-800 text-white p-3.5 rounded-xl shadow-[0_0_30px_rgba(0,0,0,0.5)] z-[60] flex justify-between items-center cursor-pointer active:scale-[0.99] transition-transform">
-            <div className="flex flex-col">
-              <span className="text-[10px] font-medium bg-white/10 px-2 py-0.5 rounded-md w-fit uppercase tracking-wider mb-0.5">{totalItems} Item</span>
-              <span className="font-bold text-base">Rp {fmt(totalPrice)}</span>
-            </div>
-            <div className="flex items-center gap-2 font-medium text-sm bg-white hover:bg-neutral-200 text-neutral-900 px-4 py-2.5 rounded-lg transition-colors">
-              Lihat Keranjang <ShoppingBag size={14} />
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
 
       <AnimatePresence>
         {chatOpen && <ChatWidget open={chatOpen} onClose={() => setChatOpen(false)} messages={messages}
@@ -129,14 +113,55 @@ export default function StorefrontPage() {
           onChip={handleChip} totalItems={totalItems} />}
       </AnimatePresence>
 
-      {!chatOpen && (
-        <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
-          onClick={() => setChatOpen(true)} aria-label="Buka chat AI"
-          className={`fixed right-5 md:right-8 w-12 h-12 bg-neutral-900 text-white rounded-xl shadow-lg flex items-center justify-center z-50 transition-all hover:bg-neutral-800 ${totalItems > 0 ? 'bottom-24 md:bottom-[96px]' : 'bottom-5 md:bottom-8'}`}>
-          {messages.length > 0 && <span className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-danger-500 border-2 border-white rounded-full" />}
-          <MessageSquare size={18} />
-        </motion.button>
-      )}
+      {/* Desktop Floating Cart & Chat */}
+      <div className="hidden md:block">
+        <AnimatePresence>
+          {totalItems > 0 && !cartOpen && (
+            <motion.div initial={{ y: 50, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 50, opacity: 0 }}
+              onClick={() => setCartOpen(true)}
+              className="fixed bottom-8 left-1/2 -translate-x-1/2 w-max bg-neutral-900 border border-white/10 text-white p-2.5 pr-4 rounded-full shadow-2xl z-[60] flex items-center gap-4 cursor-pointer hover:scale-105 active:scale-95 transition-transform backdrop-blur-xl">
+              <div className="bg-white text-black font-bold h-10 w-10 flex items-center justify-center rounded-full text-sm">
+                {totalItems}
+              </div>
+              <div className="font-semibold text-base">Rp {fmt(totalPrice)}</div>
+              <div className="flex items-center gap-2 font-medium text-xs uppercase tracking-wider text-neutral-400 pl-2">
+                Checkout <ArrowRight size={14} />
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {!chatOpen && (
+          <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
+            onClick={() => setChatOpen(true)}
+            className="fixed right-8 bottom-8 w-14 h-14 bg-indigo-600 text-white rounded-full shadow-[0_0_20px_rgba(79,70,229,0.4)] flex items-center justify-center z-50 hover:bg-indigo-500 transition-colors">
+            {messages.length > 0 && <span className="absolute top-0 right-0 w-3.5 h-3.5 bg-red-500 border-2 border-indigo-600 rounded-full animate-pulse" />}
+            <MessageSquare size={22} />
+          </motion.button>
+        )}
+      </div>
+
+      {/* Mobile App-like Bottom Nav */}
+      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-[#0A0A0A]/90 backdrop-blur-xl border-t border-white/5 z-[60] flex items-center justify-around p-3 pb-safe-area-inset-bottom">
+        <button onClick={() => window.scrollTo(0,0)} className="flex flex-col items-center gap-1 text-neutral-400 hover:text-white">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+          <span className="text-[10px] font-medium">Beranda</span>
+        </button>
+        <button onClick={() => document.getElementById('katalog')?.scrollIntoView()} className="flex flex-col items-center gap-1 text-neutral-400 hover:text-white">
+          <Search size={20} />
+          <span className="text-[10px] font-medium">Katalog</span>
+        </button>
+        <button onClick={() => setChatOpen(!chatOpen)} className="flex flex-col items-center gap-1 text-indigo-400 relative">
+          {messages.length > 0 && <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 rounded-full border border-[#0A0A0A]" />}
+          <MessageSquare size={20} />
+          <span className="text-[10px] font-medium">Asisten AI</span>
+        </button>
+        <button onClick={() => setCartOpen(true)} className="flex flex-col items-center gap-1 text-neutral-400 hover:text-white relative">
+          {totalItems > 0 && <span className="absolute -top-1 -right-2 w-3.5 h-3.5 bg-white text-black text-[9px] font-bold flex items-center justify-center rounded-full">{totalItems}</span>}
+          <ShoppingBag size={20} />
+          <span className="text-[10px] font-medium">Cart</span>
+        </button>
+      </div>
     </div>
   );
 }

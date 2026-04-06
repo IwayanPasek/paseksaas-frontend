@@ -294,13 +294,43 @@ require_once __DIR__ . '/includes/config.php';
 
     <!-- Pricing / CTA -->
     <section id="harga" class="py-32 px-6 relative border-t border-white/5">
-        <div class="max-w-4xl mx-auto text-center reveal">
-            <h2 class="font-display text-4xl md:text-5xl font-bold mb-6">Mulai Era Baru Bisnis Anda</h2>
-            <p class="text-neutral-400 text-lg mb-10 max-w-2xl mx-auto">Selama tahap *Early Access*, seluruh fasilitas *Cloud* PasekSaaS dan *Artificial Intelligence* dapat dikonsumsi 100% gratis.</p>
-            <a href="login.php" class="px-8 py-4 bg-white text-black font-semibold rounded-md hover:bg-neutral-200 transition-colors shadow-lg shadow-white/10 text-lg inline-flex items-center gap-2">
-                Deploy Halaman Anda
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
-            </a>
+        <div class="max-w-5xl mx-auto text-center reveal">
+            <h2 class="font-display text-4xl md:text-5xl font-bold mb-6">Investasi Bisnis Tanpa Beban</h2>
+            <p class="text-neutral-400 text-lg mb-12 max-w-2xl mx-auto">Kami mengerti membangun bisnis butuh waktu. Selama peluncuran, nikmati fitur premium level *Enterprise* tanpa memikirkan biaya sewa infrastruktur.</p>
+            
+            <div class="max-w-md mx-auto bento-card rounded-3xl p-8 relative overflow-hidden bg-[#0A0A0A]/50 border border-white/10 text-left">
+                <div class="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-indigo-500 to-teal-400"></div>
+                <div class="inline-block px-3 py-1 bg-indigo-500/10 text-indigo-400 text-xs font-bold uppercase tracking-wider rounded-full mb-6">Starter VIP Access</div>
+                
+                <div class="flex items-baseline gap-2 mb-8">
+                    <span class="text-5xl font-Display font-bold text-white">Rp 0</span>
+                    <span class="text-neutral-500 font-medium">/ bulan</span>
+                </div>
+                
+                <ul class="space-y-4 mb-10">
+                    <li class="flex items-center gap-3 text-neutral-300 text-sm">
+                        <svg class="text-teal-400 shrink-0" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+                        Toko Digital Langsung Jadi
+                    </li>
+                    <li class="flex items-center gap-3 text-neutral-300 text-sm">
+                        <svg class="text-teal-400 shrink-0" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+                        Asisten Chat AI 24/7 Terpasang
+                    </li>
+                    <li class="flex items-center gap-3 text-neutral-300 text-sm">
+                        <svg class="text-teal-400 shrink-0" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+                        Custom Subdomain (*.websitewayan.my.id)
+                    </li>
+                    <li class="flex items-center gap-3 text-neutral-300 text-sm">
+                        <svg class="text-teal-400 shrink-0" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+                        Insulasi Database Multi-Tenant
+                    </li>
+                </ul>
+
+                <a href="login.php" class="w-full py-4 bg-white text-black font-semibold rounded-xl hover:bg-neutral-200 transition-colors shadow-lg shadow-white/10 text-center flex justify-center items-center gap-2">
+                    Klaim Akun Master Sekarang
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+                </a>
+            </div>
         </div>
     </section>
 
