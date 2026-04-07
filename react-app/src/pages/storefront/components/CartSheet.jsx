@@ -1,12 +1,7 @@
-/* ═══════════════════════════════════════════════════
-   COMPONENT — src/components/CartSheet.jsx
-   Bottom sheet keranjang belanja — premium minimalist
-   ═══════════════════════════════════════════════════ */
-
 import React from 'react';
 import { motion } from 'framer-motion';
 import { ShoppingCart, X, Minus, Plus, MessageSquare } from 'lucide-react';
-import { fmt } from '@/lib/store';
+import { formatCurrency } from '@/lib/store';
 
 export default function CartSheet({ cart, open, onClose, onQty, total, onCheckout }) {
     if (!open || !cart.length) return null;
@@ -28,7 +23,7 @@ export default function CartSheet({ cart, open, onClose, onQty, total, onCheckou
                 {/* Header */}
                 <div className="p-4 border-b border-neutral-800 flex justify-between items-center shrink-0 bg-neutral-950">
                     <h3 className="font-semibold text-base text-white flex items-center gap-2">
-                        <ShoppingCart className="text-neutral-500" size={18} /> Keranjang
+                        <ShoppingCart className="text-neutral-500" size={18} /> Shopping Cart
                     </h3>
                     <button onClick={onClose} aria-label="Tutup keranjang"
                         className="w-7 h-7 flex items-center justify-center bg-transparent border border-neutral-800 text-neutral-400 rounded-lg hover:bg-neutral-800 hover:text-white transition-colors">
@@ -48,7 +43,7 @@ export default function CartSheet({ cart, open, onClose, onQty, total, onCheckou
                                 )}
                                 <div className="min-w-0">
                                     <h4 className="font-medium text-white text-sm line-clamp-1">{item.nama_produk}</h4>
-                                    <p className="text-xs font-semibold text-neutral-500 mt-0.5">Rp {fmt(item.harga)}</p>
+                                    <p className="text-xs font-semibold text-neutral-500 mt-0.5">IDR {formatCurrency(item.harga)}</p>
                                 </div>
                             </div>
 
@@ -72,7 +67,7 @@ export default function CartSheet({ cart, open, onClose, onQty, total, onCheckou
                 <div className="p-4 bg-neutral-950 border-t border-neutral-800 shrink-0">
                     <div className="flex justify-between items-center mb-3">
                         <span className="text-sm font-medium text-neutral-500">Total</span>
-                        <span className="text-xl font-bold text-white">Rp {fmt(total)}</span>
+                        <span className="text-xl font-bold text-white">IDR {formatCurrency(total)}</span>
                     </div>
                     <button onClick={onCheckout}
                         className="w-full py-3.5 bg-white hover:bg-neutral-200 text-black rounded-xl font-semibold text-sm flex items-center justify-center gap-2 transition-all active:scale-[0.98]">

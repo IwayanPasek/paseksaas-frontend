@@ -4,20 +4,19 @@
    ═══════════════════════════════════════════════════ */
 
 import { useState, useEffect } from 'react';
-import { S, fmt } from '../lib/store';
+import { StoreData, formatCurrency } from '../lib/store';
 
 export function useCart() {
     const [cart, setCart] = useState([]);
     const [cartOpen, setCartOpen] = useState(false);
 
-    // Auto-tutup sheet jika keranjang kosong
+    // Auto-close sheet if cart is empty
     useEffect(() => {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
         if (cart.length === 0) setCartOpen(false);
     }, [cart]);
 
-    const addToCart = (prod) =>
-        setCart(prev => [...prev, { ...prod, qty: 1 }]);
+    const addToCart = (product) =>
+        setCart(prev => [...prev, { ...product, qty: 1 }]);
 
     const updateQty = (id, delta) =>
         setCart(prev =>
@@ -26,16 +25,16 @@ export function useCart() {
                 .filter(i => i.qty > 0)
         );
 
-    const totalItems = cart.reduce((a, i) => a + i.qty, 0);
-    const totalPrice = cart.reduce((a, i) => a + i.harga * i.qty, 0);
+    const totalItems = cart.reduce((acc, item) => acc + item.qty, 0);
+    const totalPrice = cart.reduce((acc, item) => acc + item.harga * item.qty, 0);
 
     const checkoutWA = () => {
-        let t = `Halo Admin *${S.nama_toko}*! Saya ingin memesan:\n\n`;
-        cart.forEach(i => {
-            t += `▪️ ${i.qty}x ${i.nama_produk} - Rp ${fmt(i.harga * i.qty)}\n`;
+        let message = `Hello ${StoreData.name} Admin! I would like to place an order:\n\n`;
+        cart.forEach(item => {
+            message += `▪️ ${item.qty}x ${item.nama_produk} - IDR ${formatCurrency(item.harga * item.qty)}\n`;
         });
-        t += `\n*Total: Rp ${fmt(totalPrice)}*\n\nMohon diproses ya kak!`;
-        window.open(`https://wa.me/${S.wa_num}?text=${encodeURIComponent(t)}`, '_blank');
+        message += `\n*Grand Total: IDR ${formatCurrency(totalPrice)}*\n\nPlease process my order. Thank you!`;
+        window.open(`https://wa.me/${StoreData.whatsappNumber}?text=${encodeURIComponent(message)}`, '_blank');
     };
 
     return { cart, cartOpen, setCartOpen, addToCart, updateQty, totalItems, totalPrice, checkoutWA };

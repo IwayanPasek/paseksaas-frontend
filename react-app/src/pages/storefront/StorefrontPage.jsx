@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useDeferredValue } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Filter, Search, ShoppingBag, MessageSquare, ArrowRight } from 'lucide-react';
-import { S, cats, prods, faqs, fmt } from '@/lib/store';
+import { StoreData, productCategories, productList, faqItems, formatCurrency } from '@/lib/store';
 import { useCart } from '@/hooks/useCart';
 import { useChat } from '@/hooks/useChat';
 import Navbar from './components/Navbar';
@@ -31,7 +31,7 @@ export default function StorefrontPage() {
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
-  const filtered = prods.filter(p => {
+  const filtered = productList.filter(p => {
     const matchCat = selectedCat === 'all' || p.id_kategori == selectedCat;
     const matchSearch = p.nama_produk.toLowerCase().includes(deferredSearchQuery.toLowerCase());
     return matchCat && matchSearch;
@@ -40,7 +40,7 @@ export default function StorefrontPage() {
   return (
     <div className={`min-h-screen bg-[#050505] font-sans text-neutral-300 selection:bg-indigo-500/30 selection:text-white pb-20 md:pb-0`}>
       <Navbar scrolled={isScrolled} />
-      <Hero onChat={() => setChatOpen(true)} productCount={prods.length} />
+      <Hero onChat={() => setChatOpen(true)} productCount={productList.length} />
 
       <section id="katalog" className="py-20 px-6 relative z-20 border-t border-neutral-900 border-b">
         <div className="max-w-6xl mx-auto">
@@ -58,13 +58,13 @@ export default function StorefrontPage() {
             </div>
           </div>
 
-          {cats.length > 0 && (
+          {productCategories.length > 0 && (
             <div className="flex gap-2 overflow-x-auto pb-6 no-scrollbar sticky top-[60px] z-30 bg-[#050505]/90 backdrop-blur-xl pt-2">
               <button onClick={() => setSelectedCat('all')}
                 className={`px-4 py-2 text-sm font-medium transition-all whitespace-nowrap border-b-2 ${selectedCat === 'all' ? 'border-white text-white' : 'border-transparent text-neutral-500 hover:text-white'}`}>
                 Semua
               </button>
-              {cats.map(c => (
+              {productCategories.map(c => (
                 <button key={c.id_kategori} onClick={() => setSelectedCat(c.id_kategori)}
                   className={`px-4 py-2 text-sm font-medium transition-all whitespace-nowrap border-b-2 ${selectedCat == c.id_kategori ? 'border-white text-white' : 'border-transparent text-neutral-500 hover:text-white'}`}>
                   {c.nama_kategori}
@@ -96,11 +96,11 @@ export default function StorefrontPage() {
         </div>
       </section>
 
-      <FaqSection items={faqs} openIdx={openFaq} onToggle={(i) => setOpenFaq(openFaq === i ? null : i)} />
+      <FaqSection faqItems={faqItems} activeIndex={openFaq} onToggle={(i) => setOpenFaq(openFaq === i ? null : i)} />
 
       <footer className="bg-[#050505] border-t border-white/5 py-14 px-6 text-center relative z-10 mb-16 md:mb-0">
-        <LogoAvatar logo={S.logo} name={S.nama_toko} size="lg" className="bg-white text-neutral-900 mx-auto mb-4" />
-        <h4 className="font-semibold text-base mb-1.5 text-white">{S.nama_toko}</h4>
+        <LogoAvatar logo={StoreData.logo} name={StoreData.name} size="lg" className="bg-white text-neutral-900 mx-auto mb-4" />
+        <h4 className="font-semibold text-base mb-1.5 text-white">{StoreData.name}</h4>
         <p className="text-neutral-500 text-sm mb-8">E-Commerce Pintar Didukung PasekSaaS.</p>
         <p className="text-neutral-600 text-[10px] font-medium uppercase tracking-[0.25em]">&copy; {new Date().getFullYear()} Pasek SaaS Engine</p>
       </footer>
@@ -123,7 +123,7 @@ export default function StorefrontPage() {
               <div className="bg-white text-black font-bold h-10 w-10 flex items-center justify-center rounded-full text-sm">
                 {totalItems}
               </div>
-              <div className="font-semibold text-base">Rp {fmt(totalPrice)}</div>
+              <div className="font-semibold text-base">IDR {formatCurrency(totalPrice)}</div>
               <div className="flex items-center gap-2 font-medium text-xs uppercase tracking-wider text-neutral-400 pl-2">
                 Checkout <ArrowRight size={14} />
               </div>

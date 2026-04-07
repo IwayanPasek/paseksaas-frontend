@@ -1,7 +1,7 @@
 import React, { useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Sparkles, X, Send } from 'lucide-react';
-import { S } from '@/lib/store';
+import { StoreData } from '@/lib/store';
 import { CHAT_CHIPS } from '@/lib/constants';
 import ChatBubble from './ChatBubble';
 import TypingDots from './TypingDots';
@@ -24,7 +24,7 @@ export default function ChatWidget({ onClose, messages, input, setInput, onSend,
             <Sparkles size={15} />
           </div>
           <div>
-            <h3 className="font-semibold text-white text-sm">Asisten {S.nama_toko}</h3>
+            <h3 className="font-semibold text-white text-sm">{StoreData.name} Assistant</h3>
             <div className="flex items-center gap-1.5 text-[10px] text-neutral-500 font-medium mt-0.5">
               <span className="relative flex h-1.5 w-1.5">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-500 opacity-75" />
@@ -55,9 +55,9 @@ export default function ChatWidget({ onClose, messages, input, setInput, onSend,
             <div className="w-12 h-12 rounded-xl bg-white text-black flex items-center justify-center mb-3">
               <Sparkles size={22} />
             </div>
-            <h4 className="font-semibold text-white text-sm mb-1">Halo! 👋</h4>
+            <h4 className="font-semibold text-white text-sm mb-1">Welcome! 👋</h4>
             <p className="text-xs text-neutral-500 max-w-[200px]">
-              Saya asisten AI {S.nama_toko}. Mau tanya tentang layanan kami?
+              I am {StoreData.name}'s AI assistant. How can I help you today?
             </p>
           </div>
         )}
