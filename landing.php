@@ -129,9 +129,9 @@ require_once __DIR__ . '/includes/config.php';
         ::-webkit-scrollbar-thumb:hover { background: #404040; }
     </style>
 </head>
-<body class="antialiased selection:bg-indigo-500/30 selection:text-white">
+<body class="antialiased selection:bg-indigo-500/30 selection:text-white relative overflow-x-hidden">
 
-    <div class="cosmic-glow-primary"></div>
+    <div class="cosmic-glow-primary pointer-events-none"></div>
 
     <!-- Navigation -->
     <nav class="fixed top-0 left-0 right-0 z-50 glass-nav">
