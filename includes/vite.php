@@ -83,7 +83,9 @@ function renderReactShell(string $title, string $windowVar, array $data, string 
     <meta name="twitter:title" content="<?= $safeTitle ?>">
     <meta name="twitter:description" content="<?= $safeDesc ?>">
     
-    <script>window.<?= $windowVar ?> = <?= $jsonData ?>;</script>
+    <script>
+        window.<?= $windowVar ?> = <?= $jsonData ?>;
+    </script>
     <?php foreach ($assets['css'] as $c): ?><link rel="stylesheet" href="<?= $c ?>"><?php endforeach; ?>
     <style>body { background-color: #fafafa; margin: 0; font-family: 'Inter', system-ui, sans-serif; }</style>
 </head>

@@ -80,13 +80,14 @@ $desc = !empty($toko['deskripsi_landing'])
 
 $reactData = [
     'storeId'          => (int) $toko['id_toko'],
+    'name'             => $toko['nama_toko'], // Support both name/storeName
     'storeName'        => $toko['nama_toko'],
     'storeDescription' => $desc,
     'whatsappNumber'   => $wa,
     'logo'             => $toko['logo'] ?? null,
-    'products'         => $list_produk,
-    'categories'       => $list_kategori,
-    'faqItems'         => $list_faq,
+    'products'         => $list_produk ?: [],
+    'categories'       => $list_kategori ?: [],
+    'faqItems'         => $list_faq ?: [],
 ];
 
 renderReactShell(
