@@ -1,4 +1,5 @@
 <?php
+/** DEPLOYMENT TIMESTAMP: 2026-04-08 01:05:45 **/
 /**
  * db.php — PDO connection factory.
  * Returns a singleton PDO instance with consistent settings.
