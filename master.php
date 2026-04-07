@@ -11,6 +11,7 @@ require_once __DIR__ . '/includes/vite.php';
 
 requireMaster();
 $pdo = getDB();
+$csrfToken = csrfToken();
 
 // ── Hyper-Admin: Action Logger ──
 function masterLogAction(string $type, string $entity, ?int $id, ?string $details = null) {

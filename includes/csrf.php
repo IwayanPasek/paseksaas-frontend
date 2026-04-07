@@ -16,6 +16,13 @@ function csrfField(): string {
 
 function csrfVerify(): bool {
     $token = $_POST['_csrf_token'] ?? $_GET['_csrf_token'] ?? '';
+    
+    // Support JSON body (for React fetch calls)
+    if (empty($token) && $_SERVER['REQUEST_METHOD'] === 'POST') {
+        $input = json_decode(file_get_contents('php://input'), true);
+        $token = $input['_csrf_token'] ?? '';
+    }
+
     if (empty($token) || !hash_equals($_SESSION['_csrf_token'] ?? '', $token)) {
         return false;
     }

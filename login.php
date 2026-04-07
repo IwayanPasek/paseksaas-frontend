@@ -103,6 +103,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['api'])) {
     }
 
     $data = json_decode(file_get_contents('php://input'), true);
+    if (!csrfVerify($data)) {
+        echo json_encode(['status' => 'error', 'message' => 'Sesi kedaluwarsa. Silakan muat ulang halaman.']);
+        exit;
+    }
+
     $user = trim($data['username'] ?? '');
     $pass = $data['password'] ?? '';
     $remember = $data['remember'] ?? false;
@@ -115,7 +120,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['api'])) {
     }
 
     if (empty($user) || empty($pass)) {
-        echo json_encode(['status' => 'error', 'message' => 'Harap isi identitas dan keyphrase.']);
+        echo json_encode(['status' => 'error', 'message' => 'Username dan password wajib diisi.']);
         exit;
     }
 
@@ -183,7 +188,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['api'])) {
         echo json_encode(['status' => 'error', 'message' => 'Otorisasi ditolak 3 kali. Akses diblokir sementara.']);
     } else {
         $sisa = 3 - $_SESSION['login_attempts'];
-        echo json_encode(['status' => 'error', 'message' => "Identitas atau keyphrase salah. Sisa: $sisa percobaan"]);
+        echo json_encode(['status' => 'error', 'message' => "Username atau password salah. Sisa: $sisa percobaan"]);
     }
     exit;
 }
@@ -238,4 +243,5 @@ if (isset($_SESSION['role'])) {
 renderReactShell('Gateway — Pasek SaaS', 'LOGIN_DATA', [
     'is_login_page' => true,
     'master_wa'     => MASTER_WA,
+    'csrf_token'    => csrfToken(),
 ]);

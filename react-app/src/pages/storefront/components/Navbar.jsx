@@ -4,21 +4,21 @@
    ═══════════════════════════════════════════════════ */
 
 import React from 'react';
-import { S } from '@/lib/store';
+import { StoreData } from '@/lib/store';
 
-export default function Navbar({ scrolled }) {
+export default function Navbar({ isScrolled }) {
     return (
-        <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? 'glass-nav py-3' : 'bg-transparent py-5'}`}>
+        <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled ? 'glass-nav py-3' : 'bg-transparent py-5'}`}>
             <div className="max-w-6xl mx-auto px-6 flex justify-between items-center">
-                {/* Logo + Nama */}
+                {/* Logo + Name */}
                 <div className="flex items-center gap-3">
                     <div className="w-9 h-9 rounded-xl bg-white text-black flex items-center justify-center shadow-[0_0_15px_rgba(255,255,255,0.1)] overflow-hidden shrink-0 text-xs font-bold">
-                        {S.logo
-                            ? <img src={`/assets/img/produk/${S.logo}`} alt={S.nama_toko} className="w-full h-full object-cover" />
-                            : S.nama_toko.charAt(0).toUpperCase()}
+                        {StoreData.logo
+                            ? <img src={`/assets/img/produk/${StoreData.logo}`} alt={StoreData.storeName} className="w-full h-full object-cover" />
+                            : StoreData.storeName.charAt(0).toUpperCase()}
                     </div>
                     <span className="font-semibold text-[15px] text-white tracking-tight truncate max-w-[180px] sm:max-w-none">
-                        {S.nama_toko}
+                        {StoreData.storeName}
                     </span>
                 </div>
 

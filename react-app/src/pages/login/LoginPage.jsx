@@ -5,25 +5,29 @@ import { ShieldCheck, User, Key, Eye, EyeOff, AlertTriangle, Loader2, HelpCircle
 const loginData = window.LOGIN_DATA || { master_wa: '6281234567890' };
 
 export default function LoginPage() {
-  const [formData, setFormData] = useState({ username: '', password: '', remember: false });
+  const [formData, setFormData] = useState({ username: '', password: '', _csrf_token: loginData.csrf_token, remember: false });
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [errorMsg, setErrorMsg] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
   const [shake, setShake] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.username || !formData.password) { triggerError('Harap isi identifier dan keyphrase.'); return; }
-    setIsLoading(true); setErrorMsg('');
+    if (!formData.username || !formData.password) { triggerError('Please enter both username and password.'); return; }
+    setIsLoading(true); setErrorMessage('');
     try {
-      const res = await fetch('/login.php?api=1', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(formData) });
-      const data = await res.json();
+      const response = await fetch('/login.php?api=1', { 
+        method: 'POST', 
+        headers: { 'Content-Type': 'application/json' }, 
+        body: JSON.stringify(formData) 
+      });
+      const data = await response.json();
       if (data.status === 'success') window.location.assign(data.redirect);
       else { triggerError(data.message); setIsLoading(false); }
-    } catch { triggerError('Gagal terhubung ke server otorisasi.'); setIsLoading(false); }
+    } catch { triggerError('Failed to connect to the authorization server.'); setIsLoading(false); }
   };
 
-  const triggerError = (msg) => { setErrorMsg(msg); setShake(true); setTimeout(() => setShake(false), 500); };
+  const triggerError = (msg) => { setErrorMessage(msg); setShake(true); setTimeout(() => setShake(false), 500); };
 
   const handleForgotPass = () => {
     window.open(`https://wa.me/${loginData.master_wa}?text=${encodeURIComponent('Halo Master Admin, saya butuh bantuan pemulihan akses (Lupa Password).')}`, '_blank');
@@ -46,18 +50,18 @@ export default function LoginPage() {
         </div>
 
         <AnimatePresence>
-          {errorMsg && (
+          {errorMessage && (
             <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}
               className="bg-red-500/10 border border-red-500/20 p-3.5 rounded-xl flex items-start gap-2.5 overflow-hidden mb-6">
               <AlertTriangle size={16} className="text-red-400 shrink-0 mt-0.5" />
-              <p className="text-xs text-red-400 leading-relaxed">{errorMsg}</p>
+              <p className="text-xs text-red-400 leading-relaxed">{errorMessage}</p>
             </motion.div>
           )}
         </AnimatePresence>
 
         <form onSubmit={handleSubmit} className="space-y-5">
           <div className="space-y-1.5 px-0.5">
-            <label className="text-[10px] font-medium text-neutral-500 uppercase tracking-widest">Identifier</label>
+            <label className="text-[10px] font-medium text-neutral-500 uppercase tracking-widest">Username</label>
             <div className="relative flex items-center bg-black/40 border border-neutral-800 rounded-xl focus-within:border-blue-500/50 transition-all">
               <User size={16} className="absolute left-3.5 text-neutral-600" />
               <input type="text" value={formData.username} onChange={(e) => setFormData({ ...formData, username: e.target.value })}
@@ -68,8 +72,8 @@ export default function LoginPage() {
 
           <div className="space-y-1.5 px-0.5">
             <div className="flex justify-between items-center">
-              <label className="text-[10px] font-medium text-neutral-500 uppercase tracking-widest">Keyphrase</label>
-              <button type="button" onClick={handleForgotPass} className="text-[10px] font-medium text-neutral-600 hover:text-white transition-colors flex items-center gap-1"><HelpCircle size={10} /> Lupa?</button>
+              <label className="text-[10px] font-medium text-neutral-500 uppercase tracking-widest">Password</label>
+              <button type="button" onClick={handleForgotPass} className="text-[10px] font-medium text-neutral-600 hover:text-white transition-colors flex items-center gap-1"><HelpCircle size={10} /> Forgot?</button>
             </div>
             <div className="relative flex items-center bg-black/40 border border-neutral-800 rounded-xl focus-within:border-blue-500/50 transition-all">
               <Key size={16} className="absolute left-3.5 text-neutral-600" />

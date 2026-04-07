@@ -249,16 +249,24 @@ for ($i = 6; $i >= 0; $i--) {
 $csrfToken = csrfToken();
 
 $adminData = [
-    'toko'        => $data_toko,
-    'total_nilai' => array_sum(array_column($list_produk, 'harga')),
-    'produk'      => $list_produk,
-    'kategori'    => $list_kategori,
-    'log'         => $list_log,
-    'faq'         => $list_faq,
-    'grafik'      => $grafik,
-    'tab_aktif'   => $_GET['tab'] ?? 'dashboard',
-    'csrf_token'  => $csrfToken,
-    'is_impersonating' => $_SESSION['is_impersonating'] ?? false,
+    'store' => [
+        'name'        => $data_toko['nama_toko'],
+        'whatsapp'    => $data_toko['kontak_wa'],
+        'description' => $data_toko['deskripsi_landing'],
+        'logo'        => $data_toko['logo'],
+        'ai_persona'  => $data_toko['ai_persona_prompt'],
+        'ai_tone'     => $data_toko['ai_gaya_bahasa'] ?: 'formal',
+        'subdomain'   => $data_toko['subdomain'],
+    ],
+    'total_inventory_value' => (int) array_sum(array_column($list_produk, 'harga')),
+    'products'              => $list_produk,
+    'categories'            => $list_kategori,
+    'recent_logs'           => $list_log,
+    'faqs'                  => $list_faq,
+    'analytics'             => $grafik,
+    'current_tab'           => $_GET['tab'] ?? 'dashboard',
+    'csrf_token'            => $csrfToken,
+    'is_impersonating'      => $_SESSION['is_impersonating'] ?? false,
 ];
 
 renderReactShell(

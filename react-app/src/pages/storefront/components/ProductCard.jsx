@@ -6,10 +6,10 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Image as ImageIcon, ShoppingBag, Sparkles, Plus, Minus } from 'lucide-react';
-import { cats, fmt } from '@/lib/store';
+import { productCategories, formatCurrency } from '@/lib/store';
 
-export default function ProductCard({ prod, cartItem, onAsk, onAdd, onQty, imgLoaded, onImgLoad }) {
-    const catName = cats.find(c => c.id_kategori == prod.id_kategori)?.nama_kategori;
+export default function ProductCard({ product, cartItem, onAsk, onAdd, onUpdateQuantity, isImageLoaded, onImageLoad }) {
+    const categoryName = productCategories.find(cat => cat.id_kategori == product.id_kategori)?.nama_kategori;
 
     return (
         <motion.div layout
@@ -20,16 +20,16 @@ export default function ProductCard({ prod, cartItem, onAsk, onAdd, onQty, imgLo
 
             {/* ── Product Image ── */}
             <div className="aspect-[4/5] bg-[#0A0A0A] relative overflow-hidden rounded-t-2xl">
-                {!imgLoaded && prod.foto_produk && <div className="skeleton absolute inset-0 opacity-20" />}
+                {!isImageLoaded && product.foto_produk && <div className="skeleton absolute inset-0 opacity-20" />}
 
-                {prod.foto_produk ? (
+                {product.foto_produk ? (
                     <img
-                        src={`/assets/img/produk/${prod.foto_produk}`}
-                        alt={prod.nama_produk}
+                        src={`/assets/img/produk/${product.foto_produk}`}
+                        alt={product.nama_produk}
                         loading="lazy"
-                        onLoad={onImgLoad}
+                        onLoad={onImageLoad}
                         onError={(e) => { e.target.style.display = 'none'; }}
-                        className={`w-full h-full object-cover transition-transform duration-700 ease-out origin-center ${imgLoaded ? 'opacity-100 group-hover:scale-110' : 'opacity-0'}`}
+                        className={`w-full h-full object-cover transition-transform duration-700 ease-out origin-center ${isImageLoaded ? 'opacity-100 group-hover:scale-110' : 'opacity-0'}`}
                     />
                 ) : (
                     <div className="w-full h-full flex items-center justify-center text-neutral-800">
@@ -38,19 +38,19 @@ export default function ProductCard({ prod, cartItem, onAsk, onAdd, onQty, imgLo
                 )}
 
                 {/* Categories Badge */}
-                {catName && (
+                {categoryName && (
                     <span className="absolute top-3 left-3 px-3 py-1 rounded bg-black/60 backdrop-blur-md text-[9px] font-bold tracking-wider uppercase text-white border border-white/10 z-10">
-                        {catName}
+                        {categoryName}
                     </span>
                 )}
                 
                 {/* Floating "Quick Actions" Overlay on Hover */}
                 <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10 flex flex-col justify-end p-4 gap-2">
                      <button
-                        onClick={() => onAsk(prod.nama_produk)}
-                        aria-label={`Tanya AI tentang ${prod.nama_produk}`}
+                        onClick={() => onAsk(product.nama_produk)}
+                        aria-label={`Ask AI about ${product.nama_produk}`}
                         className="w-full py-2.5 rounded border border-white/20 bg-black/50 backdrop-blur-md text-white font-medium text-xs flex justify-center items-center gap-2 hover:bg-white hover:text-black transition-all transform translate-y-4 group-hover:translate-y-0 duration-300">
-                        <Sparkles size={14} className="text-indigo-400 group-hover:text-indigo-600" /> Tanya AI
+                        <Sparkles size={14} className="text-indigo-400 group-hover:text-indigo-600" /> Ask AI
                     </button>
                 </div>
             </div>
@@ -58,13 +58,13 @@ export default function ProductCard({ prod, cartItem, onAsk, onAdd, onQty, imgLo
             {/* ── Info & Actions ── */}
             <div className="p-5 flex flex-col flex-1 bg-[#050505]">
                 <h3 className="font-medium text-sm text-white mb-1.5 leading-snug line-clamp-1 group-hover:text-indigo-300 transition-colors">
-                    {prod.nama_produk}
+                    {product.nama_produk}
                 </h3>
                 
                 {/* Price */}
                 <div className="mb-4 flex items-baseline gap-1">
                     <span className="text-xs text-neutral-500 font-medium tracking-wide">IDR</span>
-                    <span className="font-display font-semibold text-base text-white">{fmt(prod.harga)}</span>
+                    <span className="font-display font-semibold text-base text-white">{formatCurrency(product.harga)}</span>
                 </div>
 
                 {/* Action Buttons */}
@@ -72,12 +72,12 @@ export default function ProductCard({ prod, cartItem, onAsk, onAdd, onQty, imgLo
                     {cartItem ? (
                         /* Qty stepper */
                         <div className="flex items-center justify-between border border-white/10 rounded-lg p-1 h-10 bg-[#0A0A0A]">
-                            <button onClick={() => onQty(prod.id_produk, -1)} aria-label="Kurangi"
+                            <button onClick={() => onUpdateQuantity(product.id_produk, -1)} aria-label="Decrease"
                                 className="w-10 h-full flex items-center justify-center text-neutral-400 hover:text-white transition-colors">
                                 <Minus size={14} />
                             </button>
                             <span className="font-bold text-white text-sm w-8 text-center">{cartItem.qty}</span>
-                            <button onClick={() => onQty(prod.id_produk, 1)} aria-label="Tambah"
+                            <button onClick={() => onUpdateQuantity(product.id_produk, 1)} aria-label="Increase"
                                 className="w-10 h-full flex items-center justify-center text-neutral-400 hover:text-white transition-colors">
                                 <Plus size={14} />
                             </button>
@@ -85,10 +85,10 @@ export default function ProductCard({ prod, cartItem, onAsk, onAdd, onQty, imgLo
                     ) : (
                         /* Add to cart */
                         <button
-                            onClick={() => onAdd(prod)}
-                            aria-label={`Tambah ${prod.nama_produk} ke keranjang`}
+                            onClick={() => onAdd(product)}
+                            aria-label={`Add ${product.nama_produk} to cart`}
                             className="w-full h-10 rounded-lg bg-neutral-900 border border-white/5 text-white font-medium text-xs flex justify-center items-center gap-2 hover:bg-white hover:text-black hover:border-white active:scale-[0.98] transition-all">
-                            <ShoppingBag size={14} /> Masukkan Keranjang
+                            <ShoppingBag size={14} /> Add to Cart
                         </button>
                     )}
                 </div>
