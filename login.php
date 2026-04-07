@@ -125,59 +125,69 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['api'])) {
     }
 
     // Check Master Admin
-    $stmt = $pdo->prepare('SELECT * FROM master_admin WHERE username = ?');
-    $stmt->execute([$user]);
-    $master = $stmt->fetch();
+    try {
+        $stmt = $pdo->prepare('SELECT * FROM master_admin WHERE username = ?');
+        $stmt->execute([$user]);
+        $master = $stmt->fetch();
 
-    if ($master && password_verify($pass, $master['password'])) {
-        session_regenerate_id(true); // Prevent session fixation
-        $_SESSION['master_logged_in'] = true;
-        $_SESSION['master_id'] = $master['id_admin'] ?? 1; // ID from DB
-        $_SESSION['master_username'] = $master['username'];
-        $_SESSION['role'] = 'master';
-        $_SESSION['login_attempts'] = 0;
+        if ($master && password_verify($pass, $master['password'])) {
+            session_regenerate_id(true); 
+            $_SESSION['master_logged_in'] = true;
+            $_SESSION['master_id'] = $master['id_admin'] ?? $master['id'] ?? 1;
+            $_SESSION['master_username'] = $master['username'];
+            $_SESSION['role'] = 'master';
+            $_SESSION['login_attempts'] = 0;
 
-        // Master is always active, but we check just in case
-        if (($master['status'] ?? 'active') !== 'active') {
-            echo json_encode(['status' => 'error', 'message' => 'Master account suspended. Contact technical support.']);
+            if (($master['status'] ?? 'active') !== 'active') {
+                echo json_encode(['status' => 'error', 'message' => 'Master account suspended.']);
+                exit;
+            }
+
+            if ($remember) {
+                $token = createRememberToken($master['username'], 'master');
+                setRememberCookie('remember_token', $token);
+            }
+
+            echo json_encode(['status' => 'success', 'redirect' => 'master.php']);
             exit;
         }
-
-        if ($remember) {
-            $token = createRememberToken($master['username'], 'master');
-            setRememberCookie('remember_token', $token);
-        }
-
-        echo json_encode(['status' => 'success', 'redirect' => 'master.php']);
-        exit;
+    } catch (PDOException $e) {
+        // Log query error but keep going to check Tenant
+        error_log("Master Login Error: " . $e->getMessage());
     }
 
     // Check Tenant
-    $stmt = $pdo->prepare('SELECT * FROM toko WHERE subdomain = ?');
-    $stmt->execute([$user]);
-    $toko = $stmt->fetch();
+    try {
+        $stmt = $pdo->prepare('SELECT * FROM toko WHERE subdomain = ?');
+        $stmt->execute([$user]);
+        $toko = $stmt->fetch();
 
-    if ($toko && password_verify($pass, $toko['password'])) {
-        session_regenerate_id(true); // Prevent session fixation
-        $_SESSION['tenant_id'] = $toko['id_toko'];
-        $_SESSION['nama_toko'] = $toko['nama_toko'];
-        $_SESSION['role'] = 'tenant';
-        $_SESSION['login_attempts'] = 0;
+        if ($toko && password_verify($pass, $toko['password'])) {
+            session_regenerate_id(true);
+            $_SESSION['tenant_id'] = $toko['id_toko'] ?? $toko['id'];
+            $_SESSION['nama_toko'] = $toko['nama_toko'];
+            $_SESSION['role'] = 'tenant';
+            $_SESSION['login_attempts'] = 0;
 
-        if (($toko['status'] ?? 'active') !== 'active') {
-            $msg = $toko['status'] === 'pending' 
-                ? 'Your account is being reviewed by the Master Admin. Please wait.' 
-                : 'Your account is currently suspended.';
-            echo json_encode(['status' => 'error', 'message' => $msg]);
+            $status = $toko['status'] ?? 'active';
+            if ($status !== 'active') {
+                $msg = $status === 'pending' 
+                    ? 'Your account is being reviewed.' 
+                    : 'Your account is suspended.';
+                echo json_encode(['status' => 'error', 'message' => $msg]);
+                exit;
+            }
+
+            if ($remember) {
+                $token = createRememberToken((string)$_SESSION['tenant_id'], 'tenant');
+                setRememberCookie('remember_token', $token);
+            }
+
+            echo json_encode(['status' => 'success', 'redirect' => 'admin.php']);
             exit;
         }
-
-        if ($remember) {
-            $token = createRememberToken((string)$toko['id_toko'], 'tenant');
-            setRememberCookie('remember_token', $token);
-        }
-
-        echo json_encode(['status' => 'success', 'redirect' => 'admin.php']);
+    } catch (PDOException $e) {
+        echo json_encode(['status' => 'error', 'message' => 'Database error during authentication: ' . $e->getMessage()]);
         exit;
     }
 

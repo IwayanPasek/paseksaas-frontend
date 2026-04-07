@@ -14,11 +14,15 @@ function csrfField(): string {
     return '<input type="hidden" name="_csrf_token" value="' . csrfToken() . '">';
 }
 
-function csrfVerify(): bool {
-    $token = $_POST['_csrf_token'] ?? $_GET['_csrf_token'] ?? '';
+/**
+ * Verify a CSRF token. 
+ * If $data is provided, it checks there. Otherwise it checks $_POST/$_GET.
+ */
+function csrfVerify(?array $data = null): bool {
+    $token = $data['_csrf_token'] ?? $_POST['_csrf_token'] ?? $_GET['_csrf_token'] ?? '';
     
-    // Support JSON body (for React fetch calls)
-    if (empty($token) && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    // Support JSON body fallback if $data was empty
+    if (empty($token) && $_SERVER['REQUEST_METHOD'] === 'POST' && empty($data)) {
         $input = json_decode(file_get_contents('php://input'), true);
         $token = $input['_csrf_token'] ?? '';
     }

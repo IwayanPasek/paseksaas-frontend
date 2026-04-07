@@ -129,7 +129,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['impersonate_tenant'])
 }
 
 // ── Fetch tenants ──
-$tenants = $pdo->query('SELECT id_toko, nama_toko, email, subdomain, kontak_wa, status, created_at FROM toko ORDER BY id_toko DESC')->fetchAll();
+$tenants = $pdo->query('SELECT id_toko, nama_toko, subdomain, kontak_wa, status, created_at FROM toko ORDER BY id_toko DESC')->fetchAll();
 
 // Mask WhatsApp numbers for privacy (show first 4 + last 3 digits)
 foreach ($tenants as &$t) {
