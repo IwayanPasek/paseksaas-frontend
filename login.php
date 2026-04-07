@@ -5,6 +5,7 @@
 session_start();
 
 require_once __DIR__ . '/includes/db.php';
+require_once __DIR__ . '/includes/csrf.php';
 require_once __DIR__ . '/includes/vite.php';
 
 // ── Remember-me token secret (HMAC signing key) ──
