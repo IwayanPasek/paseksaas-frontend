@@ -24,6 +24,7 @@ export default defineConfig({
     watch: { usePolling: true },
   },
   build: {
+    manifest: true,
     rollupOptions: {
       output: {
         manualChunks(id) {

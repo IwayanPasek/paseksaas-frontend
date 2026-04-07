@@ -19,7 +19,7 @@ $status = $stmtStatus->fetchColumn();
 
 if ($status === 'suspended') {
     session_destroy();
-    header('Location: login.php?status=error&msg=Akun+Anda+ditangguhkan.');
+    header('Location: login.php?status=error&msg=Your+account+is+suspended.');
     exit;
 }
 
@@ -67,18 +67,15 @@ function optimizeToWebp(string $sourcePath, string $destPath, int $maxWidth = 80
 //  MUTATIONS (POST/GET actions)
 // ════════════════════════════════════════════════════
 
-// ── Category: Add ──
-if (isset($_POST['add_category'])) {
-    if (!csrfVerify()) { header('Location: admin.php?status=error&msg=Token+CSRF+tidak+valid'); exit; }
 // ── Create Category ──
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_category'])) {
-    if (!csrfVerify()) { header('Location: admin.php?status=error&msg=Token+CSRF+tidak+valid'); exit; }
+    if (!csrfVerify()) { header('Location: admin.php?status=error&msg=Invalid+CSRF+token'); exit; }
     $nama = htmlspecialchars(trim($_POST['categoryName'] ?? $_POST['nama_kategori'] ?? ''));
     if (!empty($nama)) {
         $stmt = $pdo->prepare('INSERT INTO kategori (id_toko, nama_kategori) VALUES (?, ?)');
         $stmt->execute([$_SESSION['tenant_id'], $nama]);
     }
-    header('Location: admin.php?tab=categories&status=success&msg=Kategori+Ditambah');
+    header('Location: admin.php?tab=categories&status=success&msg=Category+Added');
     exit;
 }
 
@@ -94,7 +91,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && (isset($_POST['deleteCategoryId']) 
 
 // ── Product: Save (Create/Update) ──
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_product'])) {
-    if (!csrfVerify()) { header('Location: admin.php?status=error&msg=Token+CSRF+tidak+valid'); exit; }
+    if (!csrfVerify()) { header('Location: admin.php?status=error&msg=Invalid+CSRF+token'); exit; }
 
     $id_prod  = !empty($_POST['productId']) ? (int) $_POST['productId'] : (!empty($_POST['id_produk']) ? (int) $_POST['id_produk'] : null);
     $nama     = trim($_POST['productName'] ?? $_POST['nama_produk'] ?? '');
@@ -155,7 +152,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && (isset($_POST['deleteProductId']) |
 
 // ── AI Persona: Update ──
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_persona'])) {
-    if (!csrfVerify()) { header('Location: admin.php?status=error&msg=Token+CSRF+tidak+valid'); exit; }
+    if (!csrfVerify()) { header('Location: admin.php?status=error&msg=Invalid+CSRF+token'); exit; }
     $pdo->prepare('UPDATE toko SET ai_persona_prompt = ?, ai_gaya_bahasa = ? WHERE id_toko = ?')
         ->execute([
             trim($_POST['aiPersonaPrompt'] ?? $_POST['ai_persona_prompt'] ?? ''), 
@@ -168,7 +165,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_persona'])) {
 
 // ── FAQ: Add ──
 if (isset($_POST['add_faq'])) {
-    if (!csrfVerify()) { header('Location: admin.php?status=error&msg=Token+CSRF+tidak+valid'); exit; }
+    if (!csrfVerify()) { header('Location: admin.php?status=error&msg=Invalid+CSRF+token'); exit; }
     $pdo->prepare('INSERT INTO faq_toko (id_toko, pertanyaan, jawaban) VALUES (?, ?, ?)')
         ->execute([
             $id_toko, 
@@ -190,7 +187,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && (isset($_POST['deleteFaqId']) || is
 
 // ── Store Profile: Update ──
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_profil'])) {
-    if (!csrfVerify()) { header('Location: admin.php?status=error&msg=Token+CSRF+tidak+valid'); exit; }
+    if (!csrfVerify()) { header('Location: admin.php?status=error&msg=Invalid+CSRF+token'); exit; }
 
     $nama_toko = trim($_POST['storeName'] ?? $_POST['nama_toko'] ?? '');
     $wa = preg_replace('/[^0-9]/', '', $_POST['whatsappNumber'] ?? $_POST['kontak_wa'] ?? '');
