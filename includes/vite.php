@@ -20,7 +20,6 @@ function getViteAssets(): array {
             if (isset($main['file'])) {
                 $js[] = '/react-app/dist/' . $main['file'];
             }
-            
             // Primary CSS
             if (isset($main['css'])) {
                 foreach ($main['css'] as $file) {
