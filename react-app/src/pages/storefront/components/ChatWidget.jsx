@@ -34,7 +34,7 @@ export default function ChatWidget({ onClose, messages, input, setInput, onSend,
             </div>
           </div>
         </div>
-        <button onClick={onClose} aria-label="Tutup chat"
+        <button onClick={onClose} aria-label="Close chat"
           className="w-7 h-7 rounded-lg bg-transparent border border-neutral-800 text-neutral-500 flex items-center justify-center hover:bg-neutral-800 hover:text-white transition-colors">
           <X size={14} />
         </button>
@@ -72,11 +72,11 @@ export default function ChatWidget({ onClose, messages, input, setInput, onSend,
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); onSend(); } }}
-            placeholder="Ketik pesan..."
+            placeholder="Type a message..."
             disabled={typing}
             className="flex-1 bg-transparent border-none outline-none px-2.5 py-2 text-[13px] text-white resize-none max-h-[80px] min-h-[36px] placeholder:text-neutral-600"
           />
-          <button onClick={onSend} disabled={typing || !input.trim()} aria-label="Kirim pesan"
+          <button onClick={onSend} disabled={typing || !input.trim()} aria-label="Send message"
             className="w-8 h-8 shrink-0 rounded-lg bg-white text-black flex items-center justify-center active:scale-95 transition-transform disabled:opacity-30">
             <Send size={13} />
           </button>

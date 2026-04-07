@@ -79,14 +79,14 @@ $desc = !empty($toko['deskripsi_landing'])
     : ($toko['knowledge_base'] ?? 'Temukan layanan terbaik kami dengan bantuan Asisten AI.');
 
 $reactData = [
-    'id_toko'    => (int) $toko['id_toko'],
-    'nama_toko'  => $toko['nama_toko'],
-    'desc_toko'  => $desc,
-    'wa_num'     => $wa,
-    'logo'       => $toko['logo'] ?? null,
-    'products'   => $list_produk,
-    'categories' => $list_kategori,
-    'faq'        => $list_faq,
+    'storeId'          => (int) $toko['id_toko'],
+    'storeName'        => $toko['nama_toko'],
+    'storeDescription' => $desc,
+    'whatsappNumber'   => $wa,
+    'logo'             => $toko['logo'] ?? null,
+    'products'         => $list_produk,
+    'categories'       => $list_kategori,
+    'faqItems'         => $list_faq,
 ];
 
 renderReactShell(

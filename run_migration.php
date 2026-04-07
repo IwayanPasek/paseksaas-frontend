@@ -4,7 +4,7 @@ header('Content-Type: text/plain');
 
 try {
     $pdo = getDB();
-    echo "Koneksi Berhasil. Mulai Migrasi...\n\n";
+    echo "Connection Successful. Starting Migration...\n\n";
 
     // 1. Create audit_logs table
     $sqlAudit = "CREATE TABLE IF NOT EXISTS audit_logs (
@@ -19,7 +19,7 @@ try {
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;";
     
     $pdo->exec($sqlAudit);
-    echo "✔ Tabel audit_logs berhasil dibuat.\n";
+    echo "✔ Table audit_logs created successfully.\n";
 
     // 2. Create system_config table
     $sqlConfig = "CREATE TABLE IF NOT EXISTS system_config (
@@ -29,19 +29,19 @@ try {
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;";
 
     $pdo->exec($sqlConfig);
-    echo "✔ Tabel system_config berhasil dibuat.\n";
+    echo "✔ Table system_config created successfully.\n";
 
     // 3. Add 'status' and 'plan' columns to 'toko' table if they don't exist
     $stmt = $pdo->query("SHOW COLUMNS FROM toko LIKE 'status'");
     if (!$stmt->fetch()) {
         $pdo->exec("ALTER TABLE toko ADD COLUMN status ENUM('pending', 'active', 'suspended') DEFAULT 'pending' AFTER knowledge_base");
-        echo "✔ Kolom 'status' ditambahkan ke tabel toko.\n";
+        echo "✔ Column 'status' added to 'toko' table.\n";
     }
 
     $stmt = $pdo->query("SHOW COLUMNS FROM toko LIKE 'plan'");
     if (!$stmt->fetch()) {
         $pdo->exec("ALTER TABLE toko ADD COLUMN plan VARCHAR(50) DEFAULT 'starter' AFTER status");
-        echo "✔ Kolom 'plan' ditambahkan ke tabel toko.\n";
+        echo "✔ Column 'plan' added to 'toko' table.\n";
     }
 
     // 4. Create impersonation_tokens table
@@ -52,10 +52,10 @@ try {
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;";
     $pdo->exec($sqlImpersonation);
-    echo "✔ Tabel impersonation_tokens berhasil dibuat.\n";
+    echo "✔ Table impersonation_tokens created successfully.\n";
 
-    echo "\nMigrasi Hyper-Admin Selesai!";
+    echo "\nHyper-Admin Migration Completed!";
 
 } catch (PDOException $e) {
-    die("❌ Gagal Migrasi: " . $e->getMessage());
+    die("❌ Migration Failed: " . $e->getMessage());
 }

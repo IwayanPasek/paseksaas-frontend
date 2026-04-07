@@ -2,19 +2,19 @@ import { LayoutDashboard, Package, MessageSquare, Sparkles, Save, FolderOpen, Se
 
 /** Admin sidebar menu configuration */
 export const ADMIN_MENU = [
-  { id: 'dashboard',     label: 'Overview',      icon: LayoutDashboard },
-  { id: 'form_layanan',  label: 'Tambah/Edit',   icon: Save },
-  { id: 'produk',        label: 'Etalase',        icon: Package,    countKey: 'produk' },
-  { id: 'kategori',      label: 'Kategori',       icon: FolderOpen, countKey: 'kategori' },
-  { id: 'log',           label: 'Histori AI',     icon: MessageSquare, countKey: 'log' },
-  { id: 'persona',       label: 'Otak AI & FAQ', icon: Sparkles },
-  { id: 'pengaturan',    label: 'Profil Toko',    icon: Settings },
+  { id: 'dashboard',     label: 'Overview',       icon: LayoutDashboard },
+  { id: 'service_form',  label: 'Add/Edit',       icon: Save },
+  { id: 'products',      label: 'Showcase',       icon: Package,    countKey: 'products' },
+  { id: 'categories',    label: 'Categories',     icon: FolderOpen, countKey: 'categories' },
+  { id: 'recent_logs',   label: 'Chat History',   icon: MessageSquare, countKey: 'recentLogs' },
+  { id: 'persona',       label: 'AI Brain & FAQ', icon: Sparkles },
+  { id: 'settings',      label: 'Store Profile',  icon: Settings },
 ];
 
 /** Chat widget quick-reply chips */
-export const CHAT_CHIPS = ['Tampilkan semua layanan', 'Layanan termurah', 'Hubungi Admin'];
+export const CHAT_CHIPS = ['Show all services', 'Cheapest service', 'Contact Admin'];
 
 /** Default empty product form */
 export const EMPTY_PRODUCT_FORM = {
-  id_produk: '', nama_produk: '', harga: '', deskripsi: '', id_kategori: '', foto_produk: ''
+  id: '', name: '', price: '', description: '', categoryId: '', image: ''
 };

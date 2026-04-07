@@ -22,13 +22,13 @@ export default function ChatBubble({ message }) {
       {message.products?.length > 0 && (
         <div className="flex gap-2 max-w-[90%] pl-8 overflow-x-auto no-scrollbar pb-1">
           {message.products.map(product => (
-            <div key={product.id_produk} className="glass-card p-2.5 rounded-lg w-[170px] shrink-0 border-neutral-800 bg-[#0A0A0A]">
-              {product.foto_produk && (
-                <img src={`/assets/img/produk/${product.foto_produk}`}
-                  className="w-full h-[72px] object-cover rounded-md mb-2 bg-neutral-900" alt={product.nama_produk} />
+            <div key={product.id} className="glass-card p-2.5 rounded-lg w-[170px] shrink-0 border-neutral-800 bg-[#0A0A0A]">
+              {product.image && (
+                <img src={`/assets/img/produk/${product.image}`}
+                  className="w-full h-[72px] object-cover rounded-md mb-2 bg-neutral-900" alt={product.name} />
               )}
-              <div className="font-medium text-xs text-white line-clamp-1 mb-0.5">{product.nama_produk}</div>
-              <div className="font-semibold text-neutral-500 text-xs">IDR {formatCurrency(product.harga)}</div>
+              <div className="font-medium text-xs text-white line-clamp-1 mb-0.5">{product.name}</div>
+              <div className="font-semibold text-neutral-500 text-xs">IDR {formatCurrency(product.price)}</div>
             </div>
           ))}
         </div>

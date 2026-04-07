@@ -1,14 +1,14 @@
 /** Admin page data layer and configuration */
 
 export const adminData = window.ADMIN_DATA || {
-  store: { name: 'Admin', subdomain: '', description: '', whatsapp: '', logo: '' },
-  total_inventory_value: 0, 
+  store: { name: 'Admin', subdomain: '', description: '', whatsapp: '', logo: '', aiPersona: '', aiTone: 'formal' },
+  totalInventoryValue: 0, 
   products: [], 
   categories: [], 
-  recent_logs: [], 
+  recentLogs: [], 
   faqs: [], 
   analytics: [], 
-  current_tab: 'dashboard', 
-  csrf_token: '',
-  is_impersonating: false
+  currentTab: 'dashboard', 
+  csrfToken: '',
+  isImpersonating: false
 };

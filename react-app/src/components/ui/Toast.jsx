@@ -14,7 +14,7 @@ export default function Toast({ toast, onClose }) {
             ? <AlertTriangle className="text-danger-500 shrink-0 mt-0.5" size={18} />
             : <CheckCircle2 className="text-success-500 shrink-0 mt-0.5" size={18} />}
           <div className="flex-1">
-            <h4 className="font-semibold text-neutral-900 text-sm">{toast.title || (toast.type === 'error' ? 'Error' : 'Berhasil!')}</h4>
+            <h4 className="font-semibold text-neutral-900 text-sm">{toast.title || (toast.type === 'error' ? 'Error' : 'Success')}</h4>
             <p className="text-xs text-neutral-500">{toast.message}</p>
           </div>
           {onClose && (

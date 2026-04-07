@@ -27,20 +27,20 @@ export default function Hero({ onChat, productCount }) {
 
                 {/* Main Headline */}
                 <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1, duration: 0.5 }}
-                    className="text-5xl sm:text-7xl font-display font-bold text-white tracking-tighter leading-[1.05] mb-6 drop-shadow-sm">
+                    className="text-4xl sm:text-7xl font-display font-bold text-white tracking-tighter leading-[1.05] mb-6 drop-shadow-sm px-2">
                     {StoreData.storeName}
                 </motion.h1>
 
                 {/* Subheading */}
                 <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2, duration: 0.5 }}
-                    className="text-lg sm:text-xl text-neutral-400 max-w-2xl font-light leading-relaxed mb-10">
+                    className="text-base sm:text-xl text-neutral-400 max-w-2xl font-light leading-relaxed mb-10 px-4">
                     {StoreData.storeDescription || 'A premium collection curated specifically to meet the standards of your modern lifestyle.'}
                 </motion.p>
 
                 {/* Call to Actions */}
                 <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3, duration: 0.5 }}
                     className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto">
-                    <button onClick={() => document.getElementById('katalog')?.scrollIntoView({behavior: 'smooth'})} 
+                    <button onClick={() => document.getElementById('catalog')?.scrollIntoView({behavior: 'smooth'})} 
                         className="w-full sm:w-auto px-8 py-4 bg-white text-black rounded-full font-semibold text-sm flex items-center justify-center gap-3 hover:scale-105 active:scale-95 transition-all shadow-[0_0_30px_rgba(255,255,255,0.15)]">
                         Start Shopping <ShoppingBag size={16} />
                     </button>
@@ -54,11 +54,11 @@ export default function Hero({ onChat, productCount }) {
 
                 {/* Trust Badges Minimalist */}
                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5, duration: 1 }}
-                    className="flex items-center gap-6 mt-14 text-xs font-medium text-neutral-500">
+                    className="flex flex-wrap justify-center items-center gap-y-3 gap-x-6 mt-14 text-[10px] sm:text-xs font-medium text-neutral-500 px-4">
                     <div className="flex items-center gap-1.5"><Star size={12} className="text-yellow-500" /> Premium Quality</div>
-                    <div className="w-1 h-1 rounded-full bg-neutral-800"></div>
+                    <div className="hidden sm:block w-1 h-1 rounded-full bg-neutral-800"></div>
                     <div className="flex items-center gap-1.5"><Sparkles size={12} className="text-indigo-400" /> AI Powered</div>
-                    <div className="w-1 h-1 rounded-full bg-neutral-800"></div>
+                    <div className="hidden sm:block w-1 h-1 rounded-full bg-neutral-800"></div>
                     <div>{productCount} Collections Available</div>
                 </motion.div>
             </div>

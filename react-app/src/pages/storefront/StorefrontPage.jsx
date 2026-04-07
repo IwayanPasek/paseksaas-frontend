@@ -21,7 +21,7 @@ export default function StorefrontPage() {
   const [openFaq, setOpenFaq] = useState(null);
 
   const { cart, cartOpen, setCartOpen, addToCart, updateQty, totalItems, totalPrice, checkoutWA } = useCart();
-  const { chatOpen, setChatOpen, messages, inputText, setInputText, isTyping, handleSend, handleChip, tanyaProduk } = useChat();
+  const { chatOpen, setChatOpen, messages, inputText, setInputText, isTyping, handleSend, handleChip, askAboutProduct } = useChat();
 
   useEffect(() => {
     if (!localStorage.getItem('ai_session'))
@@ -32,8 +32,8 @@ export default function StorefrontPage() {
   }, []);
 
   const filtered = productList.filter(p => {
-    const matchCat = selectedCat === 'all' || p.id_kategori == selectedCat;
-    const matchSearch = p.nama_produk.toLowerCase().includes(deferredSearchQuery.toLowerCase());
+    const matchCat = selectedCat === 'all' || p.categoryId == selectedCat;
+    const matchSearch = p.name.toLowerCase().includes(deferredSearchQuery.toLowerCase());
     return matchCat && matchSearch;
   });
 
@@ -42,53 +42,53 @@ export default function StorefrontPage() {
       <Navbar scrolled={isScrolled} />
       <Hero onChat={() => setChatOpen(true)} productCount={productList.length} />
 
-      <section id="katalog" className="py-20 px-6 relative z-20 border-t border-neutral-900 border-b">
+      <section id="catalog" className="py-20 px-6 relative z-20 border-t border-neutral-900 border-b">
         <div className="max-w-6xl mx-auto">
           <div className="mb-8 flex flex-col md:flex-row justify-between items-center md:items-end gap-6 text-center md:text-left">
             <div className="flex-1 w-full">
-              <span className="text-neutral-500 font-medium text-xs tracking-widest uppercase mb-1.5 block">Katalog Layanan</span>
-              <h2 className="text-2xl md:text-3xl font-bold text-white tracking-tight">Pilih Layanan Kami</h2>
+              <span className="text-neutral-500 font-medium text-xs tracking-widest uppercase mb-1.5 block">Service Catalog</span>
+              <h2 className="text-2xl md:text-3xl font-bold text-white tracking-tight">Discover Our Selection</h2>
             </div>
             <div className="w-full md:w-72 relative group">
               <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-neutral-500 group-focus-within:text-neutral-300 transition-colors" size={16} />
-              <input type="text" placeholder="Cari produk atau layanan..."
+              <input type="text" placeholder="Search services..."
                 value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full bg-[#050505] border border-white/5 rounded-xl py-3 pl-10 pr-4 text-sm text-white outline-none focus:border-white/20 transition-all placeholder-neutral-600" />
-              {searchQuery && <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs text-neutral-500">{filtered.length} hasil</span>}
+              {searchQuery && <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs text-neutral-500">{filtered.length} results</span>}
             </div>
           </div>
 
           {productCategories.length > 0 && (
-            <div className="flex gap-2 overflow-x-auto pb-6 no-scrollbar sticky top-[60px] z-30 bg-[#050505]/90 backdrop-blur-xl pt-2">
+            <div className="flex gap-2 overflow-x-auto pb-4 no-scrollbar sticky top-[56px] md:top-[60px] z-30 bg-[#050505]/95 backdrop-blur-xl pt-2 -mx-6 px-6">
               <button onClick={() => setSelectedCat('all')}
-                className={`px-4 py-2 text-sm font-medium transition-all whitespace-nowrap border-b-2 ${selectedCat === 'all' ? 'border-white text-white' : 'border-transparent text-neutral-500 hover:text-white'}`}>
-                Semua
+                className={`px-4 py-2 text-xs md:text-sm font-medium transition-all whitespace-nowrap border-b-2 ${selectedCat === 'all' ? 'border-white text-white' : 'border-transparent text-neutral-500 hover:text-white'}`}>
+                All Categories
               </button>
               {productCategories.map(c => (
-                <button key={c.id_kategori} onClick={() => setSelectedCat(c.id_kategori)}
-                  className={`px-4 py-2 text-sm font-medium transition-all whitespace-nowrap border-b-2 ${selectedCat == c.id_kategori ? 'border-white text-white' : 'border-transparent text-neutral-500 hover:text-white'}`}>
-                  {c.nama_kategori}
+                <button key={c.id} onClick={() => setSelectedCat(c.id)}
+                  className={`px-4 py-2 text-xs md:text-sm font-medium transition-all whitespace-nowrap border-b-2 ${selectedCat == c.id ? 'border-white text-white' : 'border-transparent text-neutral-500 hover:text-white'}`}>
+                  {c.name}
                 </button>
               ))}
             </div>
           )}
 
-          <motion.div layout className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+          <motion.div layout className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-5">
             <AnimatePresence mode="popLayout">
               {filtered.length === 0 ? (
                 <motion.div layout initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
                   className="col-span-full text-center py-16 glass-card rounded-2xl">
                   <Filter size={40} className="mx-auto text-neutral-600 mb-3" />
-                  <div className="text-neutral-300 font-medium text-base">Tidak ditemukan.</div>
-                  <p className="text-neutral-500 text-sm mt-1">Coba kata kunci lain.</p>
+                  <div className="text-neutral-300 font-medium text-base">No results found.</div>
+                  <p className="text-neutral-500 text-sm mt-1">Try a different keyword or category.</p>
                 </motion.div>
               ) : (
                 filtered.map(p => (
-                  <ProductCard key={p.id_produk} prod={p}
-                    cartItem={cart.find(c => c.id_produk === p.id_produk)}
-                    onAsk={tanyaProduk} onAdd={addToCart} onQty={updateQty}
-                    imgLoaded={!!imgLoaded[p.id_produk]}
-                    onImgLoad={() => setImgLoaded(prev => ({ ...prev, [p.id_produk]: true }))} />
+                  <ProductCard key={p.id} prod={p}
+                    cartItem={cart.find(c => c.id === p.id)}
+                    onAsk={askAboutProduct} onAdd={addToCart} onQty={updateQty}
+                    imgLoaded={!!imgLoaded[p.id]}
+                    onImgLoad={() => setImgLoaded(prev => ({ ...prev, [p.id]: true }))} />
                 ))
               )}
             </AnimatePresence>
@@ -101,7 +101,7 @@ export default function StorefrontPage() {
       <footer className="bg-[#050505] border-t border-white/5 py-14 px-6 text-center relative z-10 mb-16 md:mb-0">
         <LogoAvatar logo={StoreData.logo} name={StoreData.name} size="lg" className="bg-white text-neutral-900 mx-auto mb-4" />
         <h4 className="font-semibold text-base mb-1.5 text-white">{StoreData.name}</h4>
-        <p className="text-neutral-500 text-sm mb-8">E-Commerce Pintar Didukung PasekSaaS.</p>
+        <p className="text-neutral-500 text-sm mb-8">Smart E-Commerce Powered by PasekSaaS.</p>
         <p className="text-neutral-600 text-[10px] font-medium uppercase tracking-[0.25em]">&copy; {new Date().getFullYear()} Pasek SaaS Engine</p>
       </footer>
 
@@ -145,16 +145,16 @@ export default function StorefrontPage() {
       <div className="md:hidden fixed bottom-0 left-0 right-0 bg-[#0A0A0A]/90 backdrop-blur-xl border-t border-white/5 z-[60] flex items-center justify-around p-3 pb-safe-area-inset-bottom">
         <button onClick={() => window.scrollTo(0,0)} className="flex flex-col items-center gap-1 text-neutral-400 hover:text-white">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-          <span className="text-[10px] font-medium">Beranda</span>
+          <span className="text-[10px] font-medium">Home</span>
         </button>
-        <button onClick={() => document.getElementById('katalog')?.scrollIntoView()} className="flex flex-col items-center gap-1 text-neutral-400 hover:text-white">
+        <button onClick={() => document.getElementById('catalog')?.scrollIntoView()} className="flex flex-col items-center gap-1 text-neutral-400 hover:text-white">
           <Search size={20} />
-          <span className="text-[10px] font-medium">Katalog</span>
+          <span className="text-[10px] font-medium">Catalog</span>
         </button>
         <button onClick={() => setChatOpen(!chatOpen)} className="flex flex-col items-center gap-1 text-indigo-400 relative">
           {messages.length > 0 && <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 rounded-full border border-[#0A0A0A]" />}
           <MessageSquare size={20} />
-          <span className="text-[10px] font-medium">Asisten AI</span>
+          <span className="text-[10px] font-medium">AI Assistant</span>
         </button>
         <button onClick={() => setCartOpen(true)} className="flex flex-col items-center gap-1 text-neutral-400 hover:text-white relative">
           {totalItems > 0 && <span className="absolute -top-1 -right-2 w-3.5 h-3.5 bg-white text-black text-[9px] font-bold flex items-center justify-center rounded-full">{totalItems}</span>}

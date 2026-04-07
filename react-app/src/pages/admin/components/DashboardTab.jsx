@@ -3,14 +3,14 @@ import { motion } from 'framer-motion';
 import { Package, MessageSquare, FolderOpen, Activity } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { adminData } from '../adminData';
-import { formatRp } from '@/lib/utils';
+import { formatCurrency } from '@/lib/utils';
 
 export default function DashboardTab() {
   const stats = [
-    { label: 'Total Layanan', val: adminData.produk.length, icon: Package },
-    { label: 'Nilai Etalase', val: `Rp ${formatRp(adminData.total_nilai)}`, icon: Activity },
-    { label: 'Chat Masuk', val: adminData.log.length, icon: MessageSquare },
-    { label: 'Kategori', val: adminData.kategori.length, icon: FolderOpen },
+    { label: 'Total Services', val: adminData.products.length, icon: Package },
+    { label: 'Showcase Value', val: `IDR ${formatCurrency(adminData.totalInventoryValue)}`, icon: Activity },
+    { label: 'Chat Queries', val: adminData.recentLogs.length, icon: MessageSquare },
+    { label: 'Categories', val: adminData.categories.length, icon: FolderOpen },
   ];
 
   return (
@@ -21,17 +21,19 @@ export default function DashboardTab() {
             <div className="w-9 h-9 rounded-lg bg-neutral-100 flex items-center justify-center text-neutral-500"><s.icon size={18} /></div>
             <div>
               <div className="text-[10px] font-medium text-neutral-400 uppercase tracking-wider mb-0.5">{s.label}</div>
-              <div className={`font-bold text-neutral-900 ${s.label === 'Nilai Etalase' ? 'text-base' : 'text-xl'}`}>{s.val}</div>
+              <div className={`font-bold text-neutral-900 ${s.label === 'Showcase Value' ? 'text-base' : 'text-xl'}`}>{s.val}</div>
             </div>
           </div>
         ))}
       </div>
 
       <div className="card rounded-xl p-5 md:p-6">
-        <h3 className="font-semibold text-base text-neutral-900 mb-5 flex items-center gap-2"><Activity size={16} className="text-neutral-400"/> Tren Obrolan AI (7 Hari)</h3>
+        <h3 className="font-semibold text-base text-neutral-900 mb-5 flex items-center gap-2">
+          <Activity size={16} className="text-neutral-400"/> AI Interaction Trend (7 Days)
+        </h3>
         <div className="h-[280px] w-full">
           <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={adminData.grafik} margin={{ top: 5, right: 20, bottom: 5, left: -20 }}>
+            <LineChart data={adminData.analytics} margin={{ top: 5, right: 20, bottom: 5, left: -20 }}>
               <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e5e5" />
               <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fontSize: 11, fill: '#a3a3a3', fontWeight: 500}} dy={10} />
               <YAxis axisLine={false} tickLine={false} tick={{fontSize: 11, fill: '#a3a3a3', fontWeight: 500}} />

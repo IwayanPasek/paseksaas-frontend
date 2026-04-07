@@ -2,14 +2,14 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ShieldCheck, User, Mail, Store, Globe, Key, Eye, EyeOff, AlertTriangle, Loader2, CheckCircle2, ChevronRight, ArrowLeft } from 'lucide-react';
 
-const loginData = window.LOGIN_DATA || { master_wa: '6281234567890' };
+const registerData = window.REGISTER_DATA || { siteDomain: 'websitewayan.my.id' };
 
 export default function RegisterPage() {
     const [step, setStep] = useState(1);
     const [formData, setFormData] = useState({
-        nama_pemilik: '',
+        ownerName: '',
         email: '',
-        nama_toko: '',
+        storeName: '',
         subdomain: '',
         password: '',
         confirmPassword: ''
@@ -50,12 +50,12 @@ export default function RegisterPage() {
 
     const nextStep = () => {
         if (step === 1) {
-            if (!formData.nama_pemilik || !formData.email) {
-                triggerError('Harap lengkapi data diri Anda.');
+            if (!formData.ownerName || !formData.email) {
+                triggerError('Please complete your personal data.');
                 return;
             }
             if (!formData.email.includes('@')) {
-                triggerError('Format email tidak valid.');
+                triggerError('Invalid email format.');
                 return;
             }
         }
@@ -66,11 +66,11 @@ export default function RegisterPage() {
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (formData.password !== formData.confirmPassword) {
-            triggerError('Konfirmasi password tidak cocok.');
+            triggerError('Password confirmation does not match.');
             return;
         }
         if (subdomainStatus !== 'available') {
-            triggerError('Subdomain tidak tersedia atau belum dicek.');
+            triggerError('Subdomain is not available or hasn\'t been checked.');
             return;
         }
 
@@ -90,7 +90,7 @@ export default function RegisterPage() {
                 triggerError(data.message);
             }
         } catch {
-            triggerError('Gagal terhubung ke server pendaftaran.');
+            triggerError('Failed to connect to the registration server.');
         } finally {
             setIsLoading(false);
         }
@@ -105,12 +105,12 @@ export default function RegisterPage() {
                     <div className="w-20 h-20 bg-blue-500/10 text-blue-400 rounded-full flex items-center justify-center mx-auto mb-6 border border-blue-500/20">
                         <CheckCircle2 size={40} />
                     </div>
-                    <h2 className="text-2xl font-bold text-white mb-4">Pendaftaran Berhasil!</h2>
+                    <h2 className="text-2xl font-bold text-white mb-4">Registration Successful!</h2>
                     <p className="text-neutral-400 text-sm leading-relaxed mb-8">
-                        Toko <strong>{formData.nama_toko}</strong> telah didaftarkan. Akun Anda sedang dalam proses peninjauan oleh Master Admin. Kami akan menginformasikan jika akses sudah aktif.
+                        The store <strong>{formData.storeName}</strong> has been registered. Your account is currently being reviewed by the Master Admin. We will inform you once access is active.
                     </p>
                     <a href="/" className="inline-flex items-center gap-2 text-blue-400 font-medium hover:text-blue-300 transition-colors">
-                        <ArrowLeft size={16} /> Kembali ke Beranda
+                        <ArrowLeft size={16} /> Back to Home
                     </a>
                 </motion.div>
             </div>
@@ -153,21 +153,21 @@ export default function RegisterPage() {
                 <form onSubmit={handleSubmit} className="space-y-5">
                     {step === 1 && (
                         <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-4">
-                            <InputField label="Nama Pemilik" icon={<User size={16} />} placeholder="Nama lengkap Anda"
-                                value={formData.nama_pemilik} onChange={v => setFormData({ ...formData, nama_pemilik: v })} />
-                            <InputField label="Alamat Email" icon={<Mail size={16} />} placeholder="email@contoh.com" type="email"
+                            <InputField label="Owner Name" icon={<User size={16} />} placeholder="Your full name"
+                                value={formData.ownerName} onChange={v => setFormData({ ...formData, ownerName: v })} />
+                            <InputField label="Email Address" icon={<Mail size={16} />} placeholder="email@example.com" type="email"
                                 value={formData.email} onChange={v => setFormData({ ...formData, email: v })} />
                             <button type="button" onClick={nextStep}
                                 className="w-full bg-white text-black font-bold py-4 rounded-xl hover:bg-neutral-200 transition-all flex items-center justify-center gap-2 mt-4 shadow-[0_0_15px_rgba(255,255,255,0.1)]">
-                                Lanjutkan <ChevronRight size={18} />
+                                Continue <ChevronRight size={18} />
                             </button>
                         </motion.div>
                     )}
 
                     {step === 2 && (
                         <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-4">
-                            <InputField label="Nama Toko" icon={<Store size={16} />} placeholder="Contoh: Digital Store"
-                                value={formData.nama_toko} onChange={v => setFormData({ ...formData, nama_toko: v })} />
+                            <InputField label="Store Name" icon={<Store size={16} />} placeholder="Example: Digital Store"
+                                value={formData.storeName} onChange={v => setFormData({ ...formData, storeName: v })} />
                             
                             <div className="space-y-1.5 px-0.5">
                                 <div className="flex justify-between items-center">
@@ -177,19 +177,19 @@ export default function RegisterPage() {
                                 <div className="relative flex items-center bg-black/40 border border-neutral-800 rounded-xl focus-within:border-blue-500/50 transition-all">
                                     <Globe size={16} className="absolute left-3.5 text-neutral-600" />
                                     <input type="text" value={formData.subdomain} onChange={(e) => setFormData({ ...formData, subdomain: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '') })}
-                                        placeholder="nama-toko"
+                                        placeholder="store-name"
                                         className="w-full bg-transparent border-none py-3.5 pl-10 pr-24 text-sm text-white outline-none" />
-                                    <span className="absolute right-3.5 text-[11px] font-medium text-neutral-600">.websitewayan.my.id</span>
+                                    <span className="absolute right-3.5 text-[11px] font-medium text-neutral-600">.{registerData.siteDomain}</span>
                                 </div>
                             </div>
 
                             <div className="flex gap-3 mt-4">
                                 <button type="button" onClick={() => setStep(1)} className="px-5 py-4 rounded-xl border border-neutral-800 font-medium text-sm hover:bg-white/5 transition-colors text-neutral-400">
-                                    Balik
+                                    Back
                                 </button>
                                 <button type="button" onClick={nextStep}
                                     className="flex-1 bg-white text-black font-bold py-4 rounded-xl hover:bg-neutral-200 transition-all flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(255,255,255,0.1)]">
-                                    Lanjutkan <ChevronRight size={18} />
+                                    Continue <ChevronRight size={18} />
                                 </button>
                             </div>
                         </motion.div>
@@ -202,23 +202,23 @@ export default function RegisterPage() {
                                 <div className="relative flex items-center bg-black/40 border border-neutral-800 rounded-xl focus-within:border-blue-500/50 transition-all">
                                     <Key size={16} className="absolute left-3.5 text-neutral-600" />
                                     <input type={showPassword ? 'text' : 'password'} value={formData.password} onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                                        placeholder="Min. 8 karakter"
+                                        placeholder="Min. 8 characters"
                                         className="w-full bg-transparent border-none py-3.5 pl-10 pr-10 text-sm text-white outline-none" />
                                     <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3.5 text-neutral-600 hover:text-white transition-colors">
                                         {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                                     </button>
                                 </div>
                             </div>
-                            <InputField label="Konfirmasi Password" icon={<Key size={16} />} placeholder="Ulangi password" type={showPassword ? 'text' : 'password'}
+                            <InputField label="Confirm Password" icon={<Key size={16} />} placeholder="Repeat password" type={showPassword ? 'text' : 'password'}
                                 value={formData.confirmPassword} onChange={v => setFormData({ ...formData, confirmPassword: v })} />
 
                             <div className="flex gap-3 mt-6">
                                 <button type="button" onClick={() => setStep(2)} className="px-5 py-4 rounded-xl border border-neutral-800 font-medium text-sm hover:bg-white/5 transition-colors text-neutral-400">
-                                    Balik
+                                    Back
                                 </button>
                                 <button type="submit" disabled={isLoading}
                                     className="flex-1 bg-blue-600 text-white font-bold py-4 rounded-xl hover:bg-blue-500 active:scale-[0.98] transition-all flex items-center justify-center gap-2 disabled:opacity-50">
-                                    {isLoading ? <><Loader2 size={18} className="animate-spin" /> Mendaftarkan...</> : 'Request Store Access'}
+                                    {isLoading ? <><Loader2 size={18} className="animate-spin" /> Registering...</> : 'Request Store Access'}
                                 </button>
                             </div>
                         </motion.div>
@@ -227,7 +227,7 @@ export default function RegisterPage() {
 
                 <div className="mt-8 text-center">
                     <p className="text-xs text-neutral-500">
-                        Sudah punya akses? <a href="/login.php" className="text-white font-semibold hover:underline">Masuk di sini</a>
+                        Already have access? <a href="/login.php" className="text-white font-semibold hover:underline">Login here</a>
                     </p>
                 </div>
             </motion.div>
@@ -251,8 +251,8 @@ function InputField({ label, icon, placeholder, value, onChange, type = "text" }
 
 function SubdomainIndicator({ status }) {
     if (status === 'idle') return null;
-    if (status === 'checking') return <span className="flex items-center gap-1 text-[9px] text-neutral-500"><Loader2 size={10} className="animate-spin" /> Mengecek...</span>;
-    if (status === 'available') return <span className="flex items-center gap-1 text-[9px] text-blue-400 font-bold"><CheckCircle2 size={10} /> TERSEDIA</span>;
-    if (status === 'taken') return <span className="flex items-center gap-1 text-[9px] text-red-400 font-bold"><AlertTriangle size={10} /> SUDAH DIGUNAKAN</span>;
+    if (status === 'checking') return <span className="flex items-center gap-1 text-[9px] text-neutral-500"><Loader2 size={10} className="animate-spin" /> Checking...</span>;
+    if (status === 'available') return <span className="flex items-center gap-1 text-[9px] text-blue-400 font-bold"><CheckCircle2 size={10} /> AVAILABLE</span>;
+    if (status === 'taken') return <span className="flex items-center gap-1 text-[9px] text-red-400 font-bold"><AlertTriangle size={10} /> TAKEN</span>;
     return null;
 }

@@ -70,18 +70,25 @@ function optimizeToWebp(string $sourcePath, string $destPath, int $maxWidth = 80
 // ── Category: Add ──
 if (isset($_POST['add_category'])) {
     if (!csrfVerify()) { header('Location: admin.php?status=error&msg=Token+CSRF+tidak+valid'); exit; }
-    $stmt = $pdo->prepare('INSERT INTO kategori (id_toko, nama_kategori) VALUES (?, ?)');
-    $stmt->execute([$id_toko, trim($_POST['nama_kategori'])]);
-    header('Location: admin.php?status=success&msg=Kategori+Ditambahkan&tab=kategori');
+// ── Create Category ──
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_category'])) {
+    if (!csrfVerify()) { header('Location: admin.php?status=error&msg=Token+CSRF+tidak+valid'); exit; }
+    $nama = htmlspecialchars(trim($_POST['categoryName'] ?? $_POST['nama_kategori'] ?? ''));
+    if (!empty($nama)) {
+        $stmt = $pdo->prepare('INSERT INTO kategori (id_toko, nama_kategori) VALUES (?, ?)');
+        $stmt->execute([$_SESSION['tenant_id'], $nama]);
+    }
+    header('Location: admin.php?tab=categories&status=success&msg=Kategori+Ditambah');
     exit;
 }
 
 // ── Category: Delete (POST + CSRF) ──
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['del_cat'])) {
-    if (!csrfVerify()) { header('Location: admin.php?status=error&msg=Token+CSRF+tidak+valid&tab=kategori'); exit; }
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && (isset($_POST['deleteCategoryId']) || isset($_POST['del_cat']))) {
+    if (!csrfVerify()) { header('Location: admin.php?status=error&msg=Token+CSRF+tidak+valid&tab=categories'); exit; }
+    $id_del = (int) ($_POST['deleteCategoryId'] ?? $_POST['del_cat']);
     $stmt = $pdo->prepare('DELETE FROM kategori WHERE id_kategori = ? AND id_toko = ?');
-    $stmt->execute([(int) $_POST['del_cat'], $id_toko]);
-    header('Location: admin.php?status=success&msg=Kategori+Dihapus&tab=kategori');
+    $stmt->execute([$id_del, $id_toko]);
+    header('Location: admin.php?status=success&msg=Category+Deleted&tab=categories');
     exit;
 }
 
@@ -89,33 +96,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['del_cat'])) {
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_product'])) {
     if (!csrfVerify()) { header('Location: admin.php?status=error&msg=Token+CSRF+tidak+valid'); exit; }
 
-    $id_prod  = !empty($_POST['id_produk']) ? (int) $_POST['id_produk'] : null;
-    $nama     = trim($_POST['nama_produk']);
-    $harga    = (int) $_POST['harga'];
-    $desc     = trim($_POST['deskripsi']);
-    $id_cat   = !empty($_POST['id_kategori']) ? (int) $_POST['id_kategori'] : null;
-    $nama_file = !empty($_POST['foto_lama']) ? $_POST['foto_lama'] : 'default.jpg';
+    $id_prod  = !empty($_POST['productId']) ? (int) $_POST['productId'] : (!empty($_POST['id_produk']) ? (int) $_POST['id_produk'] : null);
+    $nama     = trim($_POST['productName'] ?? $_POST['nama_produk'] ?? '');
+    $harga    = (int) ($_POST['price'] ?? $_POST['harga'] ?? 0);
+    $desc     = trim($_POST['description'] ?? $_POST['deskripsi'] ?? '');
+    $id_cat   = !empty($_POST['categoryId']) ? (int) $_POST['categoryId'] : (!empty($_POST['id_kategori']) ? (int) $_POST['id_kategori'] : null);
+    $nama_file = !empty($_POST['oldImage']) ? $_POST['oldImage'] : (!empty($_POST['foto_lama']) ? $_POST['foto_lama'] : 'default.jpg');
 
     // Handle file upload (validated)
-    if (isset($_FILES['foto']) && $_FILES['foto']['error'] === 0) {
+    if (isset($_FILES['image']) && $_FILES['image']['error'] === 0) {
         $allowed_ext = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
         $max_size = 5 * 1024 * 1024; // 5MB
-        $ext = strtolower(pathinfo($_FILES['foto']['name'], PATHINFO_EXTENSION));
+        $ext = strtolower(pathinfo($_FILES['image']['name'], PATHINFO_EXTENSION));
         $finfo = finfo_open(FILEINFO_MIME_TYPE);
-        $mime = finfo_file($finfo, $_FILES['foto']['tmp_name']);
+        $mime = finfo_file($finfo, $_FILES['image']['tmp_name']);
         finfo_close($finfo);
         $allowed_mime = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
 
-        if (in_array($ext, $allowed_ext) && in_array($mime, $allowed_mime) && $_FILES['foto']['size'] <= $max_size) {
+        if (in_array($ext, $allowed_ext) && in_array($mime, $allowed_mime) && $_FILES['image']['size'] <= $max_size) {
             if ($nama_file !== 'default.jpg' && file_exists(UPLOAD_DIR . $nama_file)) {
                 @unlink(UPLOAD_DIR . $nama_file);
             }
             $webp_file = 'prod_' . time() . '_' . bin2hex(random_bytes(4)) . '.webp';
-            if (optimizeToWebp($_FILES['foto']['tmp_name'], UPLOAD_DIR . $webp_file)) {
+            if (optimizeToWebp($_FILES['image']['tmp_name'], UPLOAD_DIR . $webp_file)) {
                 $nama_file = $webp_file;
             } else {
                 $nama_file = 'prod_' . time() . '_' . bin2hex(random_bytes(4)) . '.' . $ext;
-                move_uploaded_file($_FILES['foto']['tmp_name'], UPLOAD_DIR . $nama_file);
+                move_uploaded_file($_FILES['image']['tmp_name'], UPLOAD_DIR . $nama_file);
             }
         }
     }
@@ -127,14 +134,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_product'])) {
         $pdo->prepare('INSERT INTO produk (id_toko, nama_produk, harga, deskripsi, foto_produk, id_kategori) VALUES (?, ?, ?, ?, ?, ?)')
             ->execute([$id_toko, $nama, $harga, $desc, $nama_file, $id_cat]);
     }
-    header('Location: admin.php?status=success&msg=Layanan+Disimpan&tab=produk');
+    header('Location: admin.php?status=success&msg=Service+Saved&tab=products');
     exit;
 }
 
 // ── Product: Delete (POST + CSRF) ──
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['hapus_prod'])) {
-    if (!csrfVerify()) { header('Location: admin.php?status=error&msg=Token+CSRF+tidak+valid&tab=produk'); exit; }
-    $id_del = (int) $_POST['hapus_prod'];
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && (isset($_POST['deleteProductId']) || isset($_POST['hapus_prod']))) {
+    if (!csrfVerify()) { header('Location: admin.php?status=error&msg=Token+CSRF+tidak+valid&tab=products'); exit; }
+    $id_del = (int) ($_POST['deleteProductId'] ?? $_POST['hapus_prod']);
     $img = $pdo->prepare('SELECT foto_produk FROM produk WHERE id_produk = ? AND id_toko = ?');
     $img->execute([$id_del, $id_toko]);
     $foto = $img->fetchColumn();
@@ -142,7 +149,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['hapus_prod'])) {
         @unlink(UPLOAD_DIR . $foto);
     }
     $pdo->prepare('DELETE FROM produk WHERE id_produk = ? AND id_toko = ?')->execute([$id_del, $id_toko]);
-    header('Location: admin.php?status=success&msg=Layanan+Dihapus&tab=produk');
+    header('Location: admin.php?status=success&msg=Service+Deleted&tab=products');
     exit;
 }
 
@@ -150,8 +157,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['hapus_prod'])) {
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_persona'])) {
     if (!csrfVerify()) { header('Location: admin.php?status=error&msg=Token+CSRF+tidak+valid'); exit; }
     $pdo->prepare('UPDATE toko SET ai_persona_prompt = ?, ai_gaya_bahasa = ? WHERE id_toko = ?')
-        ->execute([trim($_POST['ai_persona_prompt']), $_POST['ai_gaya_bahasa'], $id_toko]);
-    header('Location: admin.php?status=success&msg=Karakter+AI+Diperbarui&tab=persona');
+        ->execute([
+            trim($_POST['aiPersonaPrompt'] ?? $_POST['ai_persona_prompt'] ?? ''), 
+            $_POST['aiTone'] ?? $_POST['ai_gaya_bahasa'] ?? 'formal', 
+            $id_toko
+        ]);
+    header('Location: admin.php?status=success&msg=AI+Persona+Updated&tab=persona');
     exit;
 }
 
@@ -159,16 +170,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_persona'])) {
 if (isset($_POST['add_faq'])) {
     if (!csrfVerify()) { header('Location: admin.php?status=error&msg=Token+CSRF+tidak+valid'); exit; }
     $pdo->prepare('INSERT INTO faq_toko (id_toko, pertanyaan, jawaban) VALUES (?, ?, ?)')
-        ->execute([$id_toko, trim($_POST['pertanyaan']), trim($_POST['jawaban'])]);
-    header('Location: admin.php?status=success&msg=FAQ+Ditambahkan&tab=persona');
+        ->execute([
+            $id_toko, 
+            trim($_POST['question'] ?? $_POST['pertanyaan'] ?? ''), 
+            trim($_POST['answer'] ?? $_POST['jawaban'] ?? '')
+        ]);
+    header('Location: admin.php?status=success&msg=FAQ+Added&tab=persona');
     exit;
 }
 
 // ── FAQ: Delete (POST + CSRF) ──
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['del_faq'])) {
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && (isset($_POST['deleteFaqId']) || isset($_POST['del_faq']))) {
     if (!csrfVerify()) { header('Location: admin.php?status=error&msg=Token+CSRF+tidak+valid&tab=persona'); exit; }
-    $pdo->prepare('DELETE FROM faq_toko WHERE id_faq = ? AND id_toko = ?')->execute([(int) $_POST['del_faq'], $id_toko]);
-    header('Location: admin.php?status=success&msg=FAQ+Dihapus&tab=persona');
+    $id_del = (int) ($_POST['deleteFaqId'] ?? $_POST['del_faq']);
+    $pdo->prepare('DELETE FROM faq_toko WHERE id_faq = ? AND id_toko = ?')->execute([$id_del, $id_toko]);
+    header('Location: admin.php?status=success&msg=FAQ+Deleted&tab=persona');
     exit;
 }
 
@@ -176,38 +192,38 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['del_faq'])) {
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_profil'])) {
     if (!csrfVerify()) { header('Location: admin.php?status=error&msg=Token+CSRF+tidak+valid'); exit; }
 
-    $nama_toko = trim($_POST['nama_toko']);
-    $wa = preg_replace('/[^0-9]/', '', $_POST['kontak_wa']);
-    $desc = trim($_POST['deskripsi_landing']);
+    $nama_toko = trim($_POST['storeName'] ?? $_POST['nama_toko'] ?? '');
+    $wa = preg_replace('/[^0-9]/', '', $_POST['whatsappNumber'] ?? $_POST['kontak_wa'] ?? '');
+    $desc = trim($_POST['storeDescription'] ?? $_POST['deskripsi_landing'] ?? '');
 
     $query = 'UPDATE toko SET nama_toko=?, kontak_wa=?, deskripsi_landing=? WHERE id_toko=?';
     $params = [$nama_toko, $wa, $desc, $id_toko];
 
-    if (isset($_FILES['logo_toko']) && $_FILES['logo_toko']['error'] === 0) {
+    if (isset($_FILES['storeLogo']) && $_FILES['storeLogo']['error'] === 0) {
         $allowed_ext = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
-        $ext = strtolower(pathinfo($_FILES['logo_toko']['name'], PATHINFO_EXTENSION));
+        $ext = strtolower(pathinfo($_FILES['storeLogo']['name'], PATHINFO_EXTENSION));
         $finfo = finfo_open(FILEINFO_MIME_TYPE);
-        $mime = finfo_file($finfo, $_FILES['logo_toko']['tmp_name']);
+        $mime = finfo_file($finfo, $_FILES['storeLogo']['tmp_name']);
         finfo_close($finfo);
-        $allowed_mime = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
         $logo = null;
-        if (in_array($ext, $allowed_ext) && in_array($mime, $allowed_mime) && $_FILES['logo_toko']['size'] <= 5 * 1024 * 1024) {
+        if (in_array($ext, $allowed_ext) && in_array($mime, ['image/jpeg', 'image/png', 'image/gif', 'image/webp']) && $_FILES['storeLogo']['size'] <= 5 * 1024 * 1024) {
             $webp_logo = 'logo_' . $id_toko . '_' . time() . '.webp';
-            if (optimizeToWebp($_FILES['logo_toko']['tmp_name'], UPLOAD_DIR . $webp_logo, 400)) { // Logo is smaller, max 400px
+            if (optimizeToWebp($_FILES['storeLogo']['tmp_name'], UPLOAD_DIR . $webp_logo, 400)) {
                 $logo = $webp_logo;
             } else {
                 $logo = 'logo_' . $id_toko . '_' . time() . '.' . $ext;
-                move_uploaded_file($_FILES['logo_toko']['tmp_name'], UPLOAD_DIR . $logo);
+                move_uploaded_file($_FILES['storeLogo']['tmp_name'], UPLOAD_DIR . $logo);
             }
         }
-        if (!$logo) { header('Location: admin.php?status=error&msg=Format+file+tidak+valid&tab=pengaturan'); exit; }
-        $query = 'UPDATE toko SET nama_toko=?, kontak_wa=?, deskripsi_landing=?, logo=? WHERE id_toko=?';
-        $params = [$nama_toko, $wa, $desc, $logo, $id_toko];
-        $_SESSION['nama_toko'] = $nama_toko;
+        if ($logo) {
+            $query = 'UPDATE toko SET nama_toko=?, kontak_wa=?, deskripsi_landing=?, logo=? WHERE id_toko=?';
+            $params = [$nama_toko, $wa, $desc, $logo, $id_toko];
+            $_SESSION['nama_toko'] = $nama_toko;
+        }
     }
 
     $pdo->prepare($query)->execute($params);
-    header('Location: admin.php?status=success&msg=Profil+Toko+Diperbarui&tab=pengaturan');
+    header('Location: admin.php?status=success&msg=Profile+Updated&tab=settings');
     exit;
 }
 
@@ -248,25 +264,55 @@ for ($i = 6; $i >= 0; $i--) {
 // ── Inject CSRF token for React forms ──
 $csrfToken = csrfToken();
 
+// Map Products to English keys
+$mapped_products = array_map(fn($p) => [
+    'id'          => (int)$p['id_produk'],
+    'name'        => $p['nama_produk'],
+    'price'       => (int)$p['harga'],
+    'description' => $p['deskripsi'],
+    'image'       => $p['foto_produk'] ?: 'default.jpg',
+    'categoryId'  => (int)$p['id_kategori'],
+], $list_produk);
+
+// Map Categories
+$mapped_categories = array_map(fn($c) => [
+    'id'   => (int)$c['id_kategori'],
+    'name' => $c['nama_kategori'],
+], $list_kategori);
+
+// Map Recent Logs
+$mapped_logs = array_map(fn($l) => [
+    'query'    => $l['user_query'],
+    'response' => $l['ai_response'],
+    'date'     => $l['created_at'],
+], $list_log);
+
+// Map FAQs
+$mapped_faqs = array_map(fn($f) => [
+    'id'       => (int)$f['id_faq'],
+    'question' => $f['pertanyaan'],
+    'answer'   => $f['jawaban'],
+], $list_faq);
+
 $adminData = [
     'store' => [
         'name'        => $data_toko['nama_toko'],
         'whatsapp'    => $data_toko['kontak_wa'],
         'description' => $data_toko['deskripsi_landing'],
         'logo'        => $data_toko['logo'],
-        'ai_persona'  => $data_toko['ai_persona_prompt'],
-        'ai_tone'     => $data_toko['ai_gaya_bahasa'] ?: 'formal',
+        'aiPersona'   => $data_toko['ai_persona_prompt'],
+        'aiTone'      => $data_toko['ai_gaya_bahasa'] ?: 'formal',
         'subdomain'   => $data_toko['subdomain'],
     ],
-    'total_inventory_value' => (int) array_sum(array_column($list_produk, 'harga')),
-    'products'              => $list_produk,
-    'categories'            => $list_kategori,
-    'recent_logs'           => $list_log,
-    'faqs'                  => $list_faq,
-    'analytics'             => $grafik,
-    'current_tab'           => $_GET['tab'] ?? 'dashboard',
-    'csrf_token'            => $csrfToken,
-    'is_impersonating'      => $_SESSION['is_impersonating'] ?? false,
+    'totalInventoryValue' => (int) array_sum(array_column($list_produk, 'harga')),
+    'products'            => $mapped_products,
+    'categories'          => $mapped_categories,
+    'recentLogs'          => $mapped_logs,
+    'faqs'                => $mapped_faqs,
+    'analytics'           => $grafik,
+    'currentTab'          => $_GET['tab'] ?? 'dashboard',
+    'csrfToken'           => $csrfToken,
+    'isImpersonating'     => $_SESSION['is_impersonating'] ?? false,
 ];
 
 renderReactShell(

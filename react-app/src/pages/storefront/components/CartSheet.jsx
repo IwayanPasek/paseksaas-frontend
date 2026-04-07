@@ -25,7 +25,7 @@ export default function CartSheet({ cart, open, onClose, onQty, total, onCheckou
                     <h3 className="font-semibold text-base text-white flex items-center gap-2">
                         <ShoppingCart className="text-neutral-500" size={18} /> Shopping Cart
                     </h3>
-                    <button onClick={onClose} aria-label="Tutup keranjang"
+                    <button onClick={onClose} aria-label="Close cart"
                         className="w-7 h-7 flex items-center justify-center bg-transparent border border-neutral-800 text-neutral-400 rounded-lg hover:bg-neutral-800 hover:text-white transition-colors">
                         <X size={14} />
                     </button>
@@ -34,27 +34,27 @@ export default function CartSheet({ cart, open, onClose, onQty, total, onCheckou
                 {/* Item List */}
                 <div className="flex-1 overflow-y-auto p-4 space-y-2 bg-[#0A0A0A] scrollbar-thin">
                     {cart.map(item => (
-                        <div key={item.id_produk}
+                        <div key={item.id}
                             className="glass-card p-3.5 rounded-xl flex justify-between items-center gap-3">
                             <div className="flex items-center gap-3 flex-1 min-w-0">
-                                {item.foto_produk && (
-                                    <img src={`/assets/img/produk/${item.foto_produk}`}
+                                {item.image && (
+                                    <img src={`/assets/img/produk/${item.image}`}
                                         className="w-10 h-10 rounded-lg object-cover bg-neutral-900 shrink-0" alt="" />
                                 )}
                                 <div className="min-w-0">
-                                    <h4 className="font-medium text-white text-sm line-clamp-1">{item.nama_produk}</h4>
-                                    <p className="text-xs font-semibold text-neutral-500 mt-0.5">IDR {formatCurrency(item.harga)}</p>
+                                    <h4 className="font-medium text-white text-sm line-clamp-1">{item.name}</h4>
+                                    <p className="text-xs font-semibold text-neutral-500 mt-0.5">IDR {formatCurrency(item.price)}</p>
                                 </div>
                             </div>
 
                             {/* Qty Stepper */}
                             <div className="flex items-center bg-neutral-900 border border-neutral-800 rounded-lg p-0.5 h-8 shrink-0">
-                                <button onClick={() => onQty(item.id_produk, -1)}
+                                <button onClick={() => onQty(item.id, -1)}
                                     className="w-6 h-full flex items-center justify-center text-neutral-400 hover:bg-neutral-800 hover:text-white rounded-md transition-all">
                                     <Minus size={12} strokeWidth={2.5} />
                                 </button>
                                 <span className="font-bold text-white text-xs w-5 text-center">{item.qty}</span>
-                                <button onClick={() => onQty(item.id_produk, 1)}
+                                <button onClick={() => onQty(item.id, 1)}
                                     className="w-6 h-full flex items-center justify-center text-neutral-400 hover:bg-neutral-800 hover:text-white rounded-md transition-all">
                                     <Plus size={12} strokeWidth={2.5} />
                                 </button>

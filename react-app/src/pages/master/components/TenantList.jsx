@@ -8,13 +8,13 @@ import {
 export default function TenantList({ tenants, totalNodes, csrfToken }) {
   const handleAction = (id, action, name = '') => {
     const labels = {
-      approve: 'menyetuju Pendaftaran',
-      reject: 'menghapus permanen',
-      suspend: 'menonaktifkan (SUSPEND)',
-      unsuspend: 'mengaktifkan kembali'
+      approve: 'approve registration',
+      reject: 'permanently delete',
+      suspend: 'deactivate (SUSPEND)',
+      unsuspend: 'reactivate'
     };
 
-    if (!window.confirm(`Konfirmasi: Apakah Anda yakin ingin ${labels[action] || action} untuk ${name}?`)) return;
+    if (!window.confirm(`Confirmation: Are you sure you want to ${labels[action] || action} for ${name}?`)) return;
     
     if (action === 'impersonate') {
        submitImpersonate(id);
@@ -51,12 +51,14 @@ export default function TenantList({ tenants, totalNodes, csrfToken }) {
         if (data.status === 'success') {
            window.open(`/login.php?impersonate_token=${data.token}`, '_blank');
         } else {
-           alert(data.message || 'Gagal membuat token impersonasi.');
+           alert(data.message || 'Failed to generate impersonation token.');
         }
      } catch (e) {
-        alert('Gagal menyambung ke server.');
+        alert('Failed to connect to server.');
      }
   };
+
+  const currentDomain = window.location.hostname.split('.').slice(-3).join('.');
 
   return (
     <div className="text-neutral-300">
@@ -78,7 +80,7 @@ export default function TenantList({ tenants, totalNodes, csrfToken }) {
         ) : (
           tenants.map((t, idx) => (
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.03 }}
-              key={t.id_toko} className="px-6 py-5 flex flex-col md:flex-row md:items-center justify-between gap-6 hover:bg-white/[0.01] transition-colors group">
+              key={t.id} className="px-6 py-5 flex flex-col md:flex-row md:items-center justify-between gap-6 hover:bg-white/[0.01] transition-colors group">
               
               <div className="flex items-center gap-5 flex-1 min-w-0">
                 <div className={`w-12 h-12 rounded-xl flex items-center justify-center font-bold text-lg shrink-0 border transition-all ${
@@ -86,12 +88,12 @@ export default function TenantList({ tenants, totalNodes, csrfToken }) {
                    t.status === 'suspended' ? 'bg-red-500/10 border-red-500/20 text-red-500' :
                    'bg-indigo-500/10 border-indigo-500/20 text-indigo-400 group-hover:bg-indigo-500 group-hover:text-white'
                 }`}>
-                  {t.nama_toko.substring(0, 1).toUpperCase()}
+                  {t.name.substring(0, 1).toUpperCase()}
                 </div>
                 
                 <div className="min-w-0">
                   <div className="flex items-center gap-3 mb-1">
-                    <h3 className="font-bold text-white text-base truncate">{t.nama_toko}</h3>
+                    <h3 className="font-bold text-white text-base truncate">{t.name}</h3>
                     <span className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider ${
                        t.status === 'pending' ? 'bg-amber-500/10 text-amber-500' :
                        t.status === 'suspended' ? 'bg-red-500/10 text-red-500' :
@@ -102,10 +104,10 @@ export default function TenantList({ tenants, totalNodes, csrfToken }) {
                   </div>
                   <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
                     <span className="text-[11px] text-neutral-500 font-mono flex items-center gap-1.5 hover:text-indigo-400 cursor-pointer">
-                       <ExternalLink size={10} /> {t.subdomain}.websitewayan.my.id
+                       <ExternalLink size={10} /> {t.subdomain}.{currentDomain}
                     </span>
                     <span className="text-[10px] text-neutral-600 flex items-center gap-1.5">
-                       <Clock size={10} /> Deployed {new Date(t.created_at).toLocaleDateString()}
+                       <Clock size={10} /> Deployed {new Date(t.createdAt).toLocaleDateString()}
                     </span>
                   </div>
                 </div>
@@ -114,25 +116,25 @@ export default function TenantList({ tenants, totalNodes, csrfToken }) {
               <div className="flex items-center gap-2">
                 {t.status === 'pending' ? (
                     <>
-                        <ActionButton icon={<Check size={14} />} label="APPROVE" color="emerald" onClick={() => handleAction(t.id_toko, 'approve', t.nama_toko)} />
-                        <ActionButton icon={<Trash2 size={14} />} label="REJECT" color="red" onClick={() => handleAction(t.id_toko, 'reject', t.nama_toko)} />
+                        <ActionButton icon={<Check size={14} />} label="APPROVE" color="emerald" onClick={() => handleAction(t.id, 'approve', t.name)} />
+                        <ActionButton icon={<Trash2 size={14} />} label="REJECT" color="red" onClick={() => handleAction(t.id, 'reject', t.name)} />
                     </>
                 ) : (
                     <>
-                        <ActionButton icon={<UserCog size={14} />} label="LOGIN AS" color="indigo" onClick={() => handleAction(t.id_toko, 'impersonate')} />
+                        <ActionButton icon={<UserCog size={14} />} label="LOGIN AS" color="indigo" onClick={() => handleAction(t.id, 'impersonate')} />
                         
                         {t.status === 'active' ? (
-                           <ActionButton icon={<ShieldAlert size={14} />} label="SUSPEND" color="red" onClick={() => handleAction(t.id_toko, 'suspend', t.nama_toko)} />
+                           <ActionButton icon={<ShieldAlert size={14} />} label="SUSPEND" color="red" onClick={() => handleAction(t.id, 'suspend', t.name)} />
                         ) : (
-                           <ActionButton icon={<ShieldCheck size={14} />} label="UNSUSPEND" color="emerald" onClick={() => handleAction(t.id_toko, 'unsuspend', t.nama_toko)} />
+                           <ActionButton icon={<ShieldCheck size={14} />} label="UNSUSPEND" color="emerald" onClick={() => handleAction(t.id, 'unsuspend', t.name)} />
                         )}
 
                         <div className="w-px h-6 bg-white/5 mx-1" />
                         
-                        <a href={`https://wa.me/${t.kontak_wa.replace(/\*/g,'')}`} target="_blank" rel="noreferrer" className="p-2.5 rounded-lg bg-white/5 text-neutral-500 hover:text-emerald-400 hover:bg-emerald-400/10 transition-all" title="WhatsApp Support">
+                        <a href={`https://wa.me/${t.whatsapp.replace(/\*/g,'')}`} target="_blank" rel="noreferrer" className="p-2.5 rounded-lg bg-white/5 text-neutral-500 hover:text-emerald-400 hover:bg-emerald-400/10 transition-all" title="WhatsApp Support">
                            <MessageCircle size={16} />
                         </a>
-                        <a href={`https://${t.subdomain}.websitewayan.my.id`} target="_blank" rel="noreferrer" className="p-2.5 rounded-lg bg-white/5 text-neutral-500 hover:text-white hover:bg-white/10 transition-all" title="Visit Instance">
+                        <a href={`https://${t.subdomain}.${currentDomain}`} target="_blank" rel="noreferrer" className="p-2.5 rounded-lg bg-white/5 text-neutral-500 hover:text-white hover:bg-white/10 transition-all" title="Visit Instance">
                            <ExternalLink size={16} />
                         </a>
                     </>

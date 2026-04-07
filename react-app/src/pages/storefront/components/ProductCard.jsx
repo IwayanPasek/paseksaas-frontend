@@ -8,8 +8,8 @@ import { motion } from 'framer-motion';
 import { Image as ImageIcon, ShoppingBag, Sparkles, Plus, Minus } from 'lucide-react';
 import { productCategories, formatCurrency } from '@/lib/store';
 
-export default function ProductCard({ product, cartItem, onAsk, onAdd, onUpdateQuantity, isImageLoaded, onImageLoad }) {
-    const categoryName = productCategories.find(cat => cat.id_kategori == product.id_kategori)?.nama_kategori;
+export default function ProductCard({ prod: product, cartItem, onAsk, onAdd, onQty: onUpdateQuantity, imgLoaded: isImageLoaded, onImgLoad: onImageLoad }) {
+    const categoryName = productCategories.find(cat => cat.id == product.categoryId)?.name;
 
     return (
         <motion.div layout
@@ -20,12 +20,12 @@ export default function ProductCard({ product, cartItem, onAsk, onAdd, onUpdateQ
 
             {/* ── Product Image ── */}
             <div className="aspect-[4/5] bg-[#0A0A0A] relative overflow-hidden rounded-t-2xl">
-                {!isImageLoaded && product.foto_produk && <div className="skeleton absolute inset-0 opacity-20" />}
+                {!isImageLoaded && product.image && <div className="skeleton absolute inset-0 opacity-20" />}
 
-                {product.foto_produk ? (
+                {product.image ? (
                     <img
-                        src={`/assets/img/produk/${product.foto_produk}`}
-                        alt={product.nama_produk}
+                        src={`/assets/img/produk/${product.image}`}
+                        alt={product.name}
                         loading="lazy"
                         onLoad={onImageLoad}
                         onError={(e) => { e.target.style.display = 'none'; }}
@@ -47,8 +47,8 @@ export default function ProductCard({ product, cartItem, onAsk, onAdd, onUpdateQ
                 {/* Floating "Quick Actions" Overlay on Hover */}
                 <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10 flex flex-col justify-end p-4 gap-2">
                      <button
-                        onClick={() => onAsk(product.nama_produk)}
-                        aria-label={`Ask AI about ${product.nama_produk}`}
+                        onClick={() => onAsk(product.name)}
+                        aria-label={`Ask AI about ${product.name}`}
                         className="w-full py-2.5 rounded border border-white/20 bg-black/50 backdrop-blur-md text-white font-medium text-xs flex justify-center items-center gap-2 hover:bg-white hover:text-black transition-all transform translate-y-4 group-hover:translate-y-0 duration-300">
                         <Sparkles size={14} className="text-indigo-400 group-hover:text-indigo-600" /> Ask AI
                     </button>
@@ -58,13 +58,13 @@ export default function ProductCard({ product, cartItem, onAsk, onAdd, onUpdateQ
             {/* ── Info & Actions ── */}
             <div className="p-5 flex flex-col flex-1 bg-[#050505]">
                 <h3 className="font-medium text-sm text-white mb-1.5 leading-snug line-clamp-1 group-hover:text-indigo-300 transition-colors">
-                    {product.nama_produk}
+                    {product.name}
                 </h3>
                 
                 {/* Price */}
                 <div className="mb-4 flex items-baseline gap-1">
                     <span className="text-xs text-neutral-500 font-medium tracking-wide">IDR</span>
-                    <span className="font-display font-semibold text-base text-white">{formatCurrency(product.harga)}</span>
+                    <span className="font-display font-semibold text-base text-white">{formatCurrency(product.price)}</span>
                 </div>
 
                 {/* Action Buttons */}
@@ -72,12 +72,12 @@ export default function ProductCard({ product, cartItem, onAsk, onAdd, onUpdateQ
                     {cartItem ? (
                         /* Qty stepper */
                         <div className="flex items-center justify-between border border-white/10 rounded-lg p-1 h-10 bg-[#0A0A0A]">
-                            <button onClick={() => onUpdateQuantity(product.id_produk, -1)} aria-label="Decrease"
+                            <button onClick={() => onUpdateQuantity(product.id, -1)} aria-label="Decrease"
                                 className="w-10 h-full flex items-center justify-center text-neutral-400 hover:text-white transition-colors">
                                 <Minus size={14} />
                             </button>
                             <span className="font-bold text-white text-sm w-8 text-center">{cartItem.qty}</span>
-                            <button onClick={() => onUpdateQuantity(product.id_produk, 1)} aria-label="Increase"
+                            <button onClick={() => onUpdateQuantity(product.id, 1)} aria-label="Increase"
                                 className="w-10 h-full flex items-center justify-center text-neutral-400 hover:text-white transition-colors">
                                 <Plus size={14} />
                             </button>
@@ -86,7 +86,7 @@ export default function ProductCard({ product, cartItem, onAsk, onAdd, onUpdateQ
                         /* Add to cart */
                         <button
                             onClick={() => onAdd(product)}
-                            aria-label={`Add ${product.nama_produk} to cart`}
+                            aria-label={`Add ${product.name} to cart`}
                             className="w-full h-10 rounded-lg bg-neutral-900 border border-white/5 text-white font-medium text-xs flex justify-center items-center gap-2 hover:bg-white hover:text-black hover:border-white active:scale-[0.98] transition-all">
                             <ShoppingBag size={14} /> Add to Cart
                         </button>

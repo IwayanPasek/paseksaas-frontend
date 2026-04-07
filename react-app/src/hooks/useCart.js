@@ -21,17 +21,17 @@ export function useCart() {
     const updateQty = (id, delta) =>
         setCart(prev =>
             prev
-                .map(i => i.id_produk === id ? { ...i, qty: i.qty + delta } : i)
+                .map(i => i.id === id ? { ...i, qty: i.qty + delta } : i)
                 .filter(i => i.qty > 0)
         );
 
     const totalItems = cart.reduce((acc, item) => acc + item.qty, 0);
-    const totalPrice = cart.reduce((acc, item) => acc + item.harga * item.qty, 0);
+    const totalPrice = cart.reduce((acc, item) => acc + item.price * item.qty, 0);
 
     const checkoutWA = () => {
         let message = `Hello ${StoreData.name} Admin! I would like to place an order:\n\n`;
         cart.forEach(item => {
-            message += `▪️ ${item.qty}x ${item.nama_produk} - IDR ${formatCurrency(item.harga * item.qty)}\n`;
+            message += `▪️ ${item.qty}x ${item.name} - IDR ${formatCurrency(item.price * item.qty)}\n`;
         });
         message += `\n*Grand Total: IDR ${formatCurrency(totalPrice)}*\n\nPlease process my order. Thank you!`;
         window.open(`https://wa.me/${StoreData.whatsappNumber}?text=${encodeURIComponent(message)}`, '_blank');

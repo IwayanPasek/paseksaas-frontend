@@ -2,7 +2,7 @@
 require_once __DIR__ . '/includes/db.php';
 try {
     $pdo = getDB();
-    echo "Koneksi Berhasil!\n";
+    echo "Connection Successful!\n";
 } catch (Exception $e) {
-    echo "Koneksi Gagal: " . $e->getMessage() . "\n";
+    echo "Connection Failed: " . $e->getMessage() . "\n";
 }

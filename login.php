@@ -80,10 +80,10 @@ if (isset($_GET['impersonate_token'])) {
             // Cleanup token
             $pdo->prepare('DELETE FROM impersonation_tokens WHERE token = ?')->execute([$token]);
             
-            header("Location: admin.php?status=success&msg=Mode+Impersonasi+Aktif");
+            header("Location: admin.php?status=success&msg=Impersonation+Mode+Active");
             exit;
         } else {
-            header("Location: login.php?status=error&msg=Token+impersonasi+kadaluwarsa+atau+tidak+valid.");
+            header("Location: login.php?status=error&msg=Impersonation+token+expired+or+invalid.");
             exit;
         }
     } catch (PDOException $e) {
@@ -98,13 +98,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['api'])) {
     try {
         $pdo = getDB();
     } catch (PDOException $e) {
-        echo json_encode(['status' => 'error', 'message' => 'Sistem sedang pemeliharaan.']);
+        echo json_encode(['status' => 'error', 'message' => 'System under maintenance.']);
         exit;
     }
 
     $data = json_decode(file_get_contents('php://input'), true);
     if (!csrfVerify($data)) {
-        echo json_encode(['status' => 'error', 'message' => 'Sesi kedaluwarsa. Silakan muat ulang halaman.']);
+        echo json_encode(['status' => 'error', 'message' => 'Session expired. Please reload the page.']);
         exit;
     }
 
@@ -115,12 +115,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['api'])) {
     // Brute-force protection (locked 5 min after 3 failures)
     if (isset($_SESSION['lockout_time']) && time() < $_SESSION['lockout_time']) {
         $wait = ceil(($_SESSION['lockout_time'] - time()) / 60);
-        echo json_encode(['status' => 'error', 'message' => "Terlalu banyak percobaan. Sistem terkunci selama $wait menit."]);
+        echo json_encode(['status' => 'error', 'message' => "Too many attempts. System locked for $wait minutes."]);
         exit;
     }
 
     if (empty($user) || empty($pass)) {
-        echo json_encode(['status' => 'error', 'message' => 'Username dan password wajib diisi.']);
+        echo json_encode(['status' => 'error', 'message' => 'Username and password are required.']);
         exit;
     }
 
@@ -139,7 +139,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['api'])) {
 
         // Master is always active, but we check just in case
         if (($master['status'] ?? 'active') !== 'active') {
-            echo json_encode(['status' => 'error', 'message' => 'Akun Master ditangguhkan. Hubungi tim teknis.']);
+            echo json_encode(['status' => 'error', 'message' => 'Master account suspended. Contact technical support.']);
             exit;
         }
 
@@ -166,8 +166,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['api'])) {
 
         if (($toko['status'] ?? 'active') !== 'active') {
             $msg = $toko['status'] === 'pending' 
-                ? 'Akun Anda sedang dalam proses peninjauan oleh Master Admin. Mohon tunggu.' 
-                : 'Akun Anda sedang ditangguhkan.';
+                ? 'Your account is being reviewed by the Master Admin. Please wait.' 
+                : 'Your account is currently suspended.';
             echo json_encode(['status' => 'error', 'message' => $msg]);
             exit;
         }
@@ -185,10 +185,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['api'])) {
     $_SESSION['login_attempts'] = ($_SESSION['login_attempts'] ?? 0) + 1;
     if ($_SESSION['login_attempts'] >= 3) {
         $_SESSION['lockout_time'] = time() + (5 * 60);
-        echo json_encode(['status' => 'error', 'message' => 'Otorisasi ditolak 3 kali. Akses diblokir sementara.']);
+        echo json_encode(['status' => 'error', 'message' => 'Authorization denied 3 times. Access temporarily blocked.']);
     } else {
         $sisa = 3 - $_SESSION['login_attempts'];
-        echo json_encode(['status' => 'error', 'message' => "Username atau password salah. Sisa: $sisa percobaan"]);
+        echo json_encode(['status' => 'error', 'message' => "Incorrect username or password. $sisa attempts left."]);
     }
     exit;
 }
@@ -241,7 +241,7 @@ if (isset($_SESSION['role'])) {
 
 // ── Render React Login ──
 renderReactShell('Gateway — Pasek SaaS', 'LOGIN_DATA', [
-    'is_login_page' => true,
-    'master_wa'     => MASTER_WA,
-    'csrf_token'    => csrfToken(),
+    'isLoginPage'     => true,
+    'masterWhatsapp'  => MASTER_WA,
+    'csrfToken'       => csrfToken(),
 ]);

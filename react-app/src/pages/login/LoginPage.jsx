@@ -2,10 +2,10 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ShieldCheck, User, Key, Eye, EyeOff, AlertTriangle, Loader2, HelpCircle, ArrowRight } from 'lucide-react';
 
-const loginData = window.LOGIN_DATA || { master_wa: '6281234567890' };
+const loginData = window.LOGIN_DATA || { masterWhatsapp: '6281234567890' };
 
 export default function LoginPage() {
-  const [formData, setFormData] = useState({ username: '', password: '', _csrf_token: loginData.csrf_token, remember: false });
+  const [formData, setFormData] = useState({ username: '', password: '', _csrf_token: loginData.csrfToken, remember: false });
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
@@ -30,7 +30,7 @@ export default function LoginPage() {
   const triggerError = (msg) => { setErrorMessage(msg); setShake(true); setTimeout(() => setShake(false), 500); };
 
   const handleForgotPass = () => {
-    window.open(`https://wa.me/${loginData.master_wa}?text=${encodeURIComponent('Halo Master Admin, saya butuh bantuan pemulihan akses (Lupa Password).')}`, '_blank');
+    window.open(`https://wa.me/${loginData.masterWhatsapp}?text=${encodeURIComponent('Hello Master Admin, I need help recovering access (Forgot Password).')}`, '_blank');
   };
 
   return (
@@ -92,7 +92,7 @@ export default function LoginPage() {
                 className="appearance-none w-4 h-4 border-2 border-neutral-700 rounded checked:bg-blue-600 checked:border-blue-600 transition-colors group-hover:border-neutral-500" />
               {formData.remember && <ShieldCheck size={11} className="absolute text-white pointer-events-none" />}
             </div>
-            <span className="text-xs text-neutral-500 group-hover:text-neutral-400 transition-colors">Ingat Sesi (30 Hari)</span>
+            <span className="text-xs text-neutral-500 group-hover:text-neutral-400 transition-colors">Remember Session (30 Days)</span>
           </label>
 
           <button type="submit" disabled={isLoading}
@@ -103,7 +103,7 @@ export default function LoginPage() {
 
         <div className="mt-10 pt-8 border-t border-neutral-900 text-center">
           <p className="text-xs text-neutral-500 mb-4">
-            Belum punya toko? <a href="/register.php" className="text-white font-semibold hover:underline">Daftar Sekarang</a>
+            Don't have a store? <a href="/register.php" className="text-white font-semibold hover:underline">Register Now</a>
           </p>
           <p className="text-[9px] tracking-[0.3em] uppercase text-neutral-700 font-medium italic">Control System v3.1.0</p>
         </div>

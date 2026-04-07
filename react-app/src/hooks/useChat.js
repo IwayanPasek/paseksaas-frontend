@@ -6,7 +6,7 @@
 import { useState, useCallback } from 'react';
 import { StoreData } from '../lib/store';
 
-const WHATSAPP_TRIGGER = /whatsapp|pesan|hubungi/i;
+const WHATSAPP_TRIGGER = /whatsapp|message|contact/i;
 
 export function useChat() {
     const [chatOpen, setChatOpen] = useState(false);
@@ -58,7 +58,7 @@ export function useChat() {
 
     /** Handle quick-reply chip clicks */
     const handleChip = (text) => {
-        if (text.includes('Hubungi Admin')) {
+        if (text.includes('Contact Admin')) {
             setChatOpen(true);
             pushMessage({ role: 'user', text: 'How can I contact the administrator?' });
             setIsTyping(true);

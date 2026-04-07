@@ -31,18 +31,18 @@ function masterLogAction(string $type, string $entity, ?int $id, ?string $detail
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['register_tenant'])) {
     if (!csrfVerify()) {
         if (isset($_GET['api']) || isset($_POST['impersonate_tenant'])) {
-            echo json_encode(['status' => 'error', 'message' => 'Token CSRF tidak valid.']);
+            echo json_encode(['status' => 'error', 'message' => 'Invalid CSRF token.']);
             exit;
         }
-        header('Location: master.php?status=error&msg=' . urlencode('Token CSRF tidak valid.'));
+        header('Location: master.php?status=error&msg=' . urlencode('Invalid CSRF token.'));
         exit;
     }
 
-    $nama = htmlspecialchars(trim($_POST['nama_toko']));
-    $sub  = strtolower(preg_replace('/[^a-zA-Z0-9-]/', '', $_POST['subdomain']));
-    $pass = password_hash($_POST['password_toko'], PASSWORD_BCRYPT);
-    $wa   = preg_replace('/[^0-9]/', '', $_POST['kontak_wa']);
-    $kb   = trim($_POST['knowledge_base']);
+    $nama = htmlspecialchars(trim($_POST['storeName'] ?? $_POST['nama_toko'] ?? ''));
+    $sub  = strtolower(preg_replace('/[^a-zA-Z0-9-]/', '', $_POST['subdomain'] ?? ''));
+    $pass = password_hash($_POST['storePassword'] ?? $_POST['password_toko'] ?? '', PASSWORD_BCRYPT);
+    $wa   = preg_replace('/[^0-9]/', '', $_POST['whatsappNumber'] ?? $_POST['kontak_wa'] ?? '');
+    $kb   = trim($_POST['aiContext'] ?? $_POST['knowledge_base'] ?? '');
 
     try {
         $stmt = $pdo->prepare('INSERT INTO toko (nama_toko, subdomain, password, kontak_wa, knowledge_base, status) VALUES (?, ?, ?, ?, ?, "active")');
@@ -51,7 +51,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['register_tenant'])) {
         masterLogAction('CREATE', 'TENANT', $newId, "Created tenant: $nama ($sub)");
         header('Location: master.php?status=success&msg=' . urlencode($nama));
     } catch (PDOException $e) {
-        header('Location: master.php?status=error&msg=' . urlencode('Subdomain sudah digunakan atau terjadi error.'));
+        header('Location: master.php?status=error&msg=' . urlencode('Subdomain is already in use or an error occurred.'));
     }
     exit;
 }
@@ -65,7 +65,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['approve_tenant'])) {
     $id = (int) $_POST['approve_tenant'];
     $pdo->prepare("UPDATE toko SET status = 'active' WHERE id_toko = ?")->execute([$id]);
     masterLogAction('APPROVE', 'TENANT', $id);
-    header('Location: master.php?status=success&msg=Tenant+Disetujui');
+    header('Location: master.php?status=success&msg=Tenant+Approved');
     exit;
 }
 
@@ -78,7 +78,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['suspend_tenant'])) {
     $id = (int) $_POST['suspend_tenant'];
     $pdo->prepare("UPDATE toko SET status = 'suspended' WHERE id_toko = ?")->execute([$id]);
     masterLogAction('SUSPEND', 'TENANT', $id);
-    header('Location: master.php?status=success&msg=Tenant+Ditangguhkan');
+    header('Location: master.php?status=success&msg=Tenant+Suspended');
     exit;
 }
 
@@ -91,7 +91,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['unsuspend_tenant'])) 
     $id = (int) $_POST['unsuspend_tenant'];
     $pdo->prepare("UPDATE toko SET status = 'active' WHERE id_toko = ?")->execute([$id]);
     masterLogAction('UNSUSPEND', 'TENANT', $id);
-    header('Location: master.php?status=success&msg=Tenant+Diaktifkan+Kembali');
+    header('Location: master.php?status=success&msg=Tenant+Reactivated');
     exit;
 }
 
@@ -104,7 +104,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['reject_tenant'])) {
     $id = (int) $_POST['reject_tenant'];
     $pdo->prepare("DELETE FROM toko WHERE id_toko = ?")->execute([$id]);
     masterLogAction('DELETE', 'TENANT', $id, "Permanent removal");
-    header('Location: master.php?status=success&msg=Tenant+Dihapus');
+    header('Location: master.php?status=success&msg=Tenant+Deleted');
     exit;
 }
 
@@ -112,7 +112,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['reject_tenant'])) {
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['impersonate_tenant'])) {
     header('Content-Type: application/json');
     if (!csrfVerify()) {
-        echo json_encode(['status' => 'error', 'message' => 'Token CSRF tidak valid.']);
+        echo json_encode(['status' => 'error', 'message' => 'Invalid CSRF token.']);
         exit;
     }
     $id = (int) $_POST['impersonate_tenant'];
@@ -142,10 +142,10 @@ unset($t);
 
 // ── Global Analytics ──
 $stats = [
-    'total_tenants' => count($tenants),
-    'active_tenants' => count(array_filter($tenants, fn($t) => $t['status'] === 'active')),
-    'total_chats' => (int) $pdo->query("SELECT COUNT(*) FROM log_chat")->fetchColumn(),
-    'total_products' => (int) $pdo->query("SELECT COUNT(*) FROM produk")->fetchColumn(),
+    'totalTenants'      => count($tenants),
+    'activeTenants'     => count(array_filter($tenants, fn($t) => $t['status'] === 'active')),
+    'totalInteractions' => (int) $pdo->query("SELECT COUNT(*) FROM log_chat")->fetchColumn(),
+    'totalServices'     => (int) $pdo->query("SELECT COUNT(*) FROM produk")->fetchColumn(),
 ];
 
 // Audit Logs (Latest 50)
@@ -160,13 +160,36 @@ for ($i = 13; $i >= 0; $i--) {
     $growth[] = ['date' => date('d M', strtotime($date)), 'count' => (int) $stmt->fetchColumn()];
 }
 
+// Map Tenants to English
+$mapped_tenants = array_map(fn($t) => [
+    'id'        => (int)$t['id_toko'],
+    'name'      => $t['nama_toko'],
+    'email'     => $t['email'],
+    'subdomain' => $t['subdomain'],
+    'whatsapp'  => $t['kontak_wa'],
+    'status'    => $t['status'],
+    'createdAt' => $t['created_at'],
+], $tenants);
+
+// Map Audit Logs
+$mapped_audit_logs = array_map(fn($l) => [
+    'id'        => (int)$l['id_audit'],
+    'adminId'   => (int)$l['id_admin'],
+    'type'      => $l['action_type'],
+    'entity'    => $l['entity_type'],
+    'entityId'  => (int)$l['entity_id'],
+    'details'   => $l['action_details'],
+    'ipAddress' => $l['ip_address'],
+    'date'      => $l['created_at'],
+], $audit_logs);
+
 $adminUser = $_SESSION['master_username'] ?? 'admin';
 
 renderReactShell('Hyper-Admin — Command Center', 'MASTER_DATA', [
-    'admin_session' => $adminUser . '@' . SITE_DOMAIN,
-    'stats'         => $stats,
-    'tenants'       => $tenants,
-    'audit_logs'    => $audit_logs,
-    'growth'        => $growth,
-    'csrf_token'    => $csrfToken,
+    'adminSession' => $adminUser . '@' . SITE_DOMAIN,
+    'stats'        => $stats,
+    'tenants'      => $mapped_tenants,
+    'auditLogs'    => $mapped_audit_logs,
+    'growth'       => $growth,
+    'csrfToken'    => $csrfToken,
 ]);

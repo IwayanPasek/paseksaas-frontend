@@ -178,7 +178,7 @@ require_once __DIR__ . '/includes/config.php';
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
             </a>
             <a href="https://iwayanpasek.websitewayan.my.id" target="_blank" class="w-full sm:w-auto px-6 py-3 bg-neutral-900 border border-neutral-800 text-white font-medium rounded-md hover:bg-neutral-800 transition-colors text-base flex items-center justify-center gap-2 group">
-                Lihat Demo AI
+                View AI Demo
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="group-hover:translate-x-1 transition-transform"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
             </a>
         </div>
