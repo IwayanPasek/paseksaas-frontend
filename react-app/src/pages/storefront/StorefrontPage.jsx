@@ -39,10 +39,10 @@ export default function StorefrontPage() {
 
   return (
     <div className={`min-h-screen bg-[#050505] font-sans text-neutral-300 selection:bg-indigo-500/30 selection:text-white pb-20 md:pb-0`}>
-      <Navbar scrolled={isScrolled} />
+      <Navbar isScrolled={isScrolled} />
       <Hero onChat={() => setChatOpen(true)} productCount={productList.length} />
 
-      <section id="catalog" className="py-20 px-6 relative z-20 border-t border-neutral-900 border-b">
+      <section id="catalog" className="py-20 pb-32 md:pb-20 px-6 relative z-20 border-t border-neutral-900 border-b">
         <div className="max-w-6xl mx-auto">
           <div className="mb-8 flex flex-col md:flex-row justify-between items-center md:items-end gap-6 text-center md:text-left">
             <div className="flex-1 w-full">

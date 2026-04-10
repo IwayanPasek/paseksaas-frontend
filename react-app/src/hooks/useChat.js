@@ -35,7 +35,7 @@ export function useChat() {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    store_id: StoreData.storeId,
+                    id_toko: StoreData.storeId,
                     session_id: localStorage.getItem('ai_session'),
                     user_message: query,
                 }),
@@ -44,7 +44,7 @@ export function useChat() {
             const aiReply = {
                 role: 'ai',
                 text: chatData.reply || 'Sorry, I couldn\'t process that request.',
-                products: chatData.products || [],
+                products: chatData.db_result || [],
                 showWhatsAppCard: false,
             };
             if (chatData.reply && WHATSAPP_TRIGGER.test(chatData.reply)) aiReply.showWhatsAppCard = true;

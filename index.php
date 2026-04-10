@@ -66,8 +66,8 @@ if (!$toko) {
 }
 
 $theme = $toko['theme_color'] ?? '#3b82f6';
-$wa = $toko['nomor_wa'] ?? '';
-$desc = $toko['deskripsi_toko'] ?? '';
+$wa = $toko['kontak_wa'] ?? '';
+$desc = $toko['deskripsi_landing'] ?? '';
 
 $reactData = [
     'storeId'          => (int) $toko['id_toko'],
@@ -79,6 +79,7 @@ $reactData = [
     'products'         => (array) ($list_produk ?: []),
     'categories'       => (array) ($list_kategori ?: []),
     'faqItems'         => (array) ($list_faq ?: []),
+    'themeColor'       => $theme,
 ];
 
 renderReactShell(

@@ -12,7 +12,8 @@ export default function RegisterPage() {
         storeName: '',
         subdomain: '',
         password: '',
-        confirmPassword: ''
+        confirmPassword: '',
+        _csrf_token: registerData.csrfToken
     });
     const [showPassword, setShowPassword] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
@@ -208,6 +209,12 @@ export default function RegisterPage() {
                                         {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                                     </button>
                                 </div>
+                                <div className="flex gap-1 mt-2 px-1">
+                                    {[1, 2, 3, 4].map((i) => (
+                                        <div key={i} className={`h-1 flex-1 rounded-full ${formData.password.length >= i * 2 ? 'bg-blue-500' : 'bg-neutral-800'}`} />
+                                    ))}
+                                </div>
+                                <p className="text-[9px] text-neutral-600 mt-1.5 ml-1 italic">Strength: {formData.password.length < 4 ? 'Too Short' : formData.password.length < 8 ? 'Weak' : 'Secure'}</p>
                             </div>
                             <InputField label="Confirm Password" icon={<Key size={16} />} placeholder="Repeat password" type={showPassword ? 'text' : 'password'}
                                 value={formData.confirmPassword} onChange={v => setFormData({ ...formData, confirmPassword: v })} />

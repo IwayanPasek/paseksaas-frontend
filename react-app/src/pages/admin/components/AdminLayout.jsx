@@ -66,7 +66,7 @@ export function AdminHeader({ activeTab, setSidebarOpen }) {
         <h2 className="font-semibold text-lg text-neutral-900">{current?.label}</h2>
       </div>
       {adminData.store?.subdomain && (
-        <a href={`https://${adminData.store.subdomain}.${window.location.hostname.split('.').slice(-3).join('.')}`} target="_blank" rel="noreferrer"
+        <a href={`https://${adminData.store.subdomain}.${adminData.store.siteDomain}`} target="_blank" rel="noreferrer"
           className="flex items-center gap-1.5 px-3 py-1.5 bg-neutral-100 hover:bg-neutral-200 text-neutral-600 rounded-lg text-xs font-medium transition-colors">
           <ExternalLink size={13} /> <span className="hidden sm:inline">View Storefront</span>
         </a>

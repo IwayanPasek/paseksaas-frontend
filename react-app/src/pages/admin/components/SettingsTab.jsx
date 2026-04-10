@@ -55,6 +55,19 @@ export default function SettingsTab({ csrfToken }) {
               className="w-full bg-white border border-neutral-200 focus:border-indigo-500/50 focus:ring-4 focus:ring-indigo-500/5 rounded-xl p-4 text-sm outline-none transition-all resize-none shadow-sm" />
           </div>
 
+          <div className="space-y-2">
+            <label className="text-[10px] font-bold uppercase tracking-widest text-neutral-500">Brand Theme Color</label>
+            <div className="flex items-center gap-4">
+              <input type="color" name="themeColor" defaultValue={adminData.store?.themeColor || '#3b82f6'}
+                className="w-12 h-12 rounded-lg border border-neutral-200 cursor-pointer overflow-hidden p-0 bg-transparent" />
+              <div className="flex-1">
+                <input type="text" value={adminData.store?.themeColor || '#3b82f6'} readOnly
+                  className="w-full bg-neutral-50 border border-neutral-200 rounded-xl px-4 py-2.5 text-xs font-mono outline-none text-neutral-500" />
+              </div>
+            </div>
+            <p className="text-[10px] text-neutral-400 mt-1">This color will be used for buttons and accents on your storefront.</p>
+          </div>
+
           <div className="pt-4">
             <button type="submit" className="w-full py-4 bg-neutral-900 text-white rounded-xl font-bold text-sm hover:bg-black transition-all active:scale-[0.98] flex items-center justify-center gap-2.5 shadow-lg shadow-neutral-900/10">
               <Save size={18} /> Update Store Profile

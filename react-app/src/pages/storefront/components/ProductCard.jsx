@@ -10,6 +10,7 @@ import { productCategories, formatCurrency } from '@/lib/store';
 
 export default function ProductCard({ prod: product, cartItem, onAsk, onAdd, onQty: onUpdateQuantity, imgLoaded: isImageLoaded, onImgLoad: onImageLoad }) {
     const categoryName = productCategories.find(cat => cat.id == product.categoryId)?.name;
+    const [imageError, setImageError] = React.useState(false);
 
     return (
         <motion.div layout
@@ -20,20 +21,21 @@ export default function ProductCard({ prod: product, cartItem, onAsk, onAdd, onQ
 
             {/* ── Product Image ── */}
             <div className="aspect-[4/5] bg-[#0A0A0A] relative overflow-hidden rounded-t-2xl">
-                {!isImageLoaded && product.image && <div className="skeleton absolute inset-0 opacity-20" />}
+                {!isImageLoaded && product.image && !imageError && <div className="skeleton absolute inset-0 opacity-20" />}
 
-                {product.image ? (
+                {product.image && !imageError ? (
                     <img
                         src={`/assets/img/produk/${product.image}`}
                         alt={product.name}
                         loading="lazy"
                         onLoad={onImageLoad}
-                        onError={(e) => { e.target.style.display = 'none'; }}
+                        onError={() => setImageError(true)}
                         className={`w-full h-full object-cover transition-transform duration-700 ease-out origin-center ${isImageLoaded ? 'opacity-100 group-hover:scale-110' : 'opacity-0'}`}
                     />
                 ) : (
-                    <div className="w-full h-full flex items-center justify-center text-neutral-800">
+                    <div className="w-full h-full flex flex-col items-center justify-center text-neutral-800 bg-neutral-900/50">
                         <ImageIcon size={40} strokeWidth={1} />
+                        <span className="text-[10px] mt-2 font-medium uppercase tracking-tighter opacity-50">No Image</span>
                     </div>
                 )}
 

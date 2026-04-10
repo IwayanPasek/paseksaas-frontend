@@ -7,6 +7,9 @@
 require_once __DIR__ . '/config.php';
 
 function getViteAssets(): array {
+    static $cache = null;
+    if ($cache !== null) return $cache;
+
     $css = [];
     $js  = [];
     $manifestPath = BASE_DIR . '/react-app/dist/.vite/manifest.json';
@@ -46,7 +49,8 @@ function getViteAssets(): array {
         }
     }
 
-    return ['css' => array_unique($css), 'js' => array_unique($js)];
+    $cache = ['css' => array_unique($css), 'js' => array_unique($js)];
+    return $cache;
 }
 
 /**

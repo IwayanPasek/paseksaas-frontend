@@ -193,8 +193,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_profil'])) {
     $wa = preg_replace('/[^0-9]/', '', $_POST['whatsappNumber'] ?? $_POST['kontak_wa'] ?? '');
     $desc = trim($_POST['storeDescription'] ?? $_POST['deskripsi_landing'] ?? '');
 
-    $query = 'UPDATE toko SET nama_toko=?, kontak_wa=?, deskripsi_landing=? WHERE id_toko=?';
-    $params = [$nama_toko, $wa, $desc, $id_toko];
+    $query = 'UPDATE toko SET nama_toko=?, kontak_wa=?, deskripsi_landing=?, theme_color=? WHERE id_toko=?';
+    $params = [$nama_toko, $wa, $desc, $_POST['themeColor'] ?? '#3b82f6', $id_toko];
 
     if (isset($_FILES['storeLogo']) && $_FILES['storeLogo']['error'] === 0) {
         $allowed_ext = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
@@ -213,8 +213,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_profil'])) {
             }
         }
         if ($logo) {
-            $query = 'UPDATE toko SET nama_toko=?, kontak_wa=?, deskripsi_landing=?, logo=? WHERE id_toko=?';
-            $params = [$nama_toko, $wa, $desc, $logo, $id_toko];
+            $query = 'UPDATE toko SET nama_toko=?, kontak_wa=?, deskripsi_landing=?, theme_color=?, logo=? WHERE id_toko=?';
+            $params = [$nama_toko, $wa, $desc, $_POST['themeColor'] ?? '#3b82f6', $logo, $id_toko];
             $_SESSION['nama_toko'] = $nama_toko;
         }
     }
@@ -244,7 +244,7 @@ $stmt = $pdo->prepare('SELECT * FROM faq_toko WHERE id_toko = ? ORDER BY id_faq 
 $stmt->execute([$id_toko]);
 $list_faq = $stmt->fetchAll();
 
-$stmt = $pdo->prepare('SELECT nama_toko, kontak_wa, deskripsi_landing, logo, ai_persona_prompt, ai_gaya_bahasa, subdomain FROM toko WHERE id_toko = ?');
+$stmt = $pdo->prepare('SELECT nama_toko, kontak_wa, deskripsi_landing, logo, ai_persona_prompt, ai_gaya_bahasa, subdomain, theme_color FROM toko WHERE id_toko = ?');
 $stmt->execute([$id_toko]);
 $data_toko = $stmt->fetch();
 
@@ -300,6 +300,8 @@ $adminData = [
         'aiPersona'   => $data_toko['ai_persona_prompt'],
         'aiTone'      => $data_toko['ai_gaya_bahasa'] ?: 'formal',
         'subdomain'   => $data_toko['subdomain'],
+        'themeColor'  => $data_toko['theme_color'] ?? '#3b82f6',
+        'siteDomain'  => SITE_DOMAIN,
     ],
     'totalInventoryValue' => (int) array_sum(array_column($list_produk, 'harga')),
     'products'            => $mapped_products,

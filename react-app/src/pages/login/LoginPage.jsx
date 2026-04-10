@@ -10,6 +10,11 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [shake, setShake] = useState(false);
+  const userRef = React.useRef(null);
+
+  React.useEffect(() => {
+    userRef.current?.focus();
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -64,7 +69,7 @@ export default function LoginPage() {
             <label className="text-[10px] font-medium text-neutral-500 uppercase tracking-widest">Username</label>
             <div className="relative flex items-center bg-black/40 border border-neutral-800 rounded-xl focus-within:border-blue-500/50 transition-all">
               <User size={16} className="absolute left-3.5 text-neutral-600" />
-              <input type="text" value={formData.username} onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+              <input type="text" ref={userRef} value={formData.username} onChange={(e) => setFormData({ ...formData, username: e.target.value })}
                 placeholder="Username or Subdomain" disabled={isLoading}
                 className="w-full bg-transparent border-none py-3.5 pl-10 pr-3.5 text-sm text-white placeholder:text-neutral-700 outline-none disabled:opacity-50" />
             </div>
