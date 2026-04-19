@@ -6,6 +6,7 @@ session_start();
 
 require_once __DIR__ . '/includes/db.php';
 require_once __DIR__ . '/includes/csrf.php';
+require_once __DIR__ . '/includes/error_handler.php';
 require_once __DIR__ . '/includes/vite.php';
 
 // ── API: Check Subdomain Availability ──
@@ -24,8 +25,9 @@ if (isset($_GET['api']) && $_GET['api'] === 'check-subdomain') {
         $stmt->execute([$sub]);
         $exists = $stmt->fetchColumn() > 0;
         echo json_encode(['available' => !$exists]);
-    } catch (Exception $e) {
-        echo json_encode(['available' => false, 'error' => $e->getMessage()]);
+    } catch (PDOException $e) {
+        error_log("Subdomain check error: " . $e->getMessage());
+        echo json_encode(['available' => false, 'message' => 'Unable to verify. Please try again.']);
     }
     exit;
 }
@@ -36,6 +38,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['api']) && $_GET['api']
     $data = json_decode(file_get_contents('php://input'), true);
 
     if (!csrfVerify($data)) {
+        logSecurityEvent('CSRF_FAIL', 'medium', 'Registration form CSRF token mismatch');
         echo json_encode(['status' => 'error', 'message' => 'Session expired. Please reload the page.']);
         exit;
     }
@@ -46,8 +49,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['api']) && $_GET['api']
     $subdomain = strtolower(preg_replace('/[^a-zA-Z0-9-]/', '', $data['subdomain'] ?? ''));
     $password = $data['password'] ?? '';
 
+    // Validate email format
+    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        echo json_encode(['status' => 'error', 'message' => 'Please provide a valid email address.']);
+        exit;
+    }
+
     if (empty($nama_pemilik) || empty($email) || empty($nama_toko) || empty($subdomain) || strlen($password) < 8) {
         echo json_encode(['status' => 'error', 'message' => 'Please complete all data correctly (Password min. 8 characters).']);
+        exit;
+    }
+
+    // Validate subdomain length and format
+    if (strlen($subdomain) < 3 || strlen($subdomain) > 63) {
+        echo json_encode(['status' => 'error', 'message' => 'Subdomain must be between 3 and 63 characters.']);
         exit;
     }
 
@@ -69,22 +84,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['api']) && $_GET['api']
             exit;
         }
 
-        $hashed = password_hash($password, PASSWORD_BCRYPT);
+        $hashed = password_hash($password, PASSWORD_BCRYPT, ['cost' => 12]);
         
         // Status is 'pending' for manual approval
-        $stmt = $pdo->prepare('INSERT INTO toko (nama_toko, email, subdomain, password, status, knowledge_base) VALUES (?, ?, ?, ?, ?, ?)');
+        $stmt = $pdo->prepare(
+            'INSERT INTO toko (nama_toko, email, subdomain, password, status, knowledge_base, created_ip) 
+             VALUES (?, ?, ?, ?, ?, ?, ?)'
+        );
         $stmt->execute([
             $nama_toko, 
             $email, 
             $subdomain, 
             $hashed, 
             'pending',
-            "Hello! I am the AI assistant for $nama_toko. The store owner is $nama_pemilik."
+            "Hello! I am the AI assistant for $nama_toko. The store owner is $nama_pemilik.",
+            $_SERVER['REMOTE_ADDR'] ?? null,
         ]);
 
         echo json_encode(['status' => 'success', 'message' => 'Registration successfully submitted.']);
     } catch (PDOException $e) {
-        echo json_encode(['status' => 'error', 'message' => 'Registration failed: ' . $e->getMessage()]);
+        // SECURITY: Do NOT leak database error details to client
+        error_log("Registration error: " . $e->getMessage());
+        echo json_encode(['status' => 'error', 'message' => 'Registration failed. Please try again later.']);
     }
     exit;
 }

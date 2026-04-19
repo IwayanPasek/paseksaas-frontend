@@ -55,9 +55,21 @@ function getViteAssets(): array {
 
 /**
  * Render the standard HTML shell for a React page.
+ * 
+ * @param string $title     Page title
+ * @param string $windowVar JavaScript window variable name (sanitized to alphanumeric + underscore)
+ * @param array  $data      Data to inject as JSON
+ * @param string $seoDesc   Optional SEO description
  */
 function renderReactShell(string $title, string $windowVar, array $data, string $seoDesc = ''): void {
     $assets = getViteAssets();
+    
+    // SECURITY: Sanitize windowVar to prevent script injection
+    // Only allow alphanumeric characters and underscores
+    $windowVar = preg_replace('/[^A-Za-z0-9_]/', '', $windowVar);
+    if (empty($windowVar)) {
+        $windowVar = 'APP_DATA';
+    }
     
     // Proactive protection against broken JSON serialization
     $jsonData = json_encode($data, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP);
@@ -68,6 +80,9 @@ function renderReactShell(string $title, string $windowVar, array $data, string 
     $safeTitle = htmlspecialchars($title);
     $safeDesc = htmlspecialchars($seoDesc ?: 'E-Commerce Platform & AI Assistant powered by PasekSaaS');
     $currentUrl = htmlspecialchars("https://" . ($_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI']));
+
+    // Generate nonce for inline script CSP
+    $nonce = base64_encode(random_bytes(16));
     ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -86,11 +101,11 @@ function renderReactShell(string $title, string $windowVar, array $data, string 
     <meta name="twitter:title" content="<?= $safeTitle ?>">
     <meta name="twitter:description" content="<?= $safeDesc ?>">
     
-    <script>
+    <script nonce="<?= $nonce ?>">
         window.<?= $windowVar ?> = <?= $jsonData ?>;
     </script>
     <?php foreach ($assets['css'] as $c): ?><link rel="stylesheet" href="<?= $c ?>"><?php endforeach; ?>
-    <style>body { background-color: #fafafa; margin: 0; font-family: 'Inter', system-ui, sans-serif; }</style>
+    <style nonce="<?= $nonce ?>">body { background-color: #fafafa; margin: 0; font-family: 'Inter', system-ui, sans-serif; }</style>
 </head>
 <body>
     <div id="root">

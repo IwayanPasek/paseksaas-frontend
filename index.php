@@ -1,11 +1,9 @@
 <?php
-/** CACHE BUSTER: 2026-04-08 01:08:45 **/
+/** PasekSaaS — Storefront Entry Point (Subdomain Router) */
 session_start();
 
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
-
 require_once __DIR__ . '/includes/db.php';
+require_once __DIR__ . '/includes/error_handler.php';
 require_once __DIR__ . '/includes/vite.php';
 
 // -- Detect subdomain --
@@ -38,8 +36,7 @@ try {
     if ($toko) {
         if (($toko['status'] ?? 'active') !== 'active') {
             http_response_code(403);
-            echo "Access Suspended";
-            exit;
+            showErrorPage(403, 'Access Suspended', 'This store is currently unavailable.');
         }
 
         $id_toko = (int) $toko['id_toko'];
@@ -57,7 +54,9 @@ try {
         $list_faq = $stmt->fetchAll();
     }
 } catch (PDOException $e) {
-    die("Database Error: " . $e->getMessage());
+    // Log real error server-side, show generic page
+    error_log("Storefront DB Error (subdomain=$subdomain): " . $e->getMessage());
+    showErrorPage(503, 'Service Unavailable', 'We are experiencing a temporary issue. Please try again shortly.');
 }
 
 if (!$toko) {

@@ -10,6 +10,45 @@
     # RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
 </IfModule>
 
+# ═══════════════════════════════════════════════════
+#  SECURITY HEADERS
+# ═══════════════════════════════════════════════════
+<IfModule mod_headers.c>
+    # Prevent clickjacking
+    Header always set X-Frame-Options "SAMEORIGIN"
+    
+    # Prevent MIME-type sniffing
+    Header always set X-Content-Type-Options "nosniff"
+    
+    # Enable XSS filter (legacy browsers)
+    Header always set X-XSS-Protection "1; mode=block"
+    
+    # Referrer policy — don't leak full URL to external sites
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+    
+    # Permissions policy — restrict browser features
+    Header always set Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=()"
+    
+    # HSTS — Force HTTPS for 1 year (enable after confirming HTTPS works)
+    # Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+    
+    # Content Security Policy — restrict resource loading
+    # Note: 'unsafe-inline' needed for React inline styles; nonce-based CSP is set per-page
+    Header always set Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' https://*.websitewayan.my.id; frame-ancestors 'self'; base-uri 'self'; form-action 'self'"
+    
+    # Ensure proxies don't serve wrong content
+    Header append Vary User-Agent env=!dont-vary
+    
+    # Disable Server Signature
+    ServerSignature Off
+
+    # Remove X-Powered-By header
+    Header always unset X-Powered-By
+</IfModule>
+
+# ═══════════════════════════════════════════════════
+#  COMPRESSION
+# ═══════════════════════════════════════════════════
 <IfModule mod_deflate.c>
     # Compress standard text and web formats
     AddOutputFilterByType DEFLATE text/html
@@ -40,6 +79,9 @@
     BrowserMatch \bMSIE !no-gzip !gzip-only-text/html
 </IfModule>
 
+# ═══════════════════════════════════════════════════
+#  CACHING
+# ═══════════════════════════════════════════════════
 <IfModule mod_expires.c>
     ExpiresActive On
     
@@ -63,10 +105,15 @@
     ExpiresByType application/json "access plus 0 seconds"
 </IfModule>
 
-<IfModule mod_headers.c>
-    # Ensure proxies don't serve wrong content
-    Header append Vary User-Agent env=!dont-vary
-
-    # Disable Server Signature
-    ServerSignature Off
-</IfModule>
+# ═══════════════════════════════════════════════════
+#  PROTECT SENSITIVE FILES
+# ═══════════════════════════════════════════════════
+<FilesMatch "^\.env|\.git|\.htpasswd">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order Allow,Deny
+        Deny from all
+    </IfModule>
+</FilesMatch>

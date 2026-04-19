@@ -1,6 +1,34 @@
-# Abaikan kredensial
-.env
-config.php
+# ═══════════════════════════════════════════════════
+#  PasekSaaS Frontend — Git Ignore
+# ═══════════════════════════════════════════════════
 
-# Abaikan foto upload dari user agar repo tidak bengkak
-assets/img/produk/
+# Environment (NEVER commit credentials)
+.env
+.env.local
+.env.production
+
+# Dependencies
+node_modules/
+
+# Build output
+react-app/dist/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+error_log
+
+# Uploads (user-generated content)
+assets/img/produk/*.webp
+assets/img/produk/*.jpg
+assets/img/produk/*.png
+!assets/img/produk/default.jpg

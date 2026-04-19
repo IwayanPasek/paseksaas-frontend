@@ -6,13 +6,13 @@ session_start();
 
 require_once __DIR__ . '/includes/db.php';
 require_once __DIR__ . '/includes/csrf.php';
+require_once __DIR__ . '/includes/error_handler.php';
+require_once __DIR__ . '/includes/rate_limiter.php';
 require_once __DIR__ . '/includes/vite.php';
-
-// ── Remember-me token secret (HMAC signing key) ──
-define('COOKIE_SECRET', hash('sha256', DB_PASS . '_paseksaas_cookie_sign'));
 
 /**
  * Create a signed remember-me cookie value.
+ * Uses COOKIE_SECRET from .env (NOT derived from DB password).
  * Format: base64(id|role|expiry|signature)
  */
 function createRememberToken(string $id, string $role): string {
@@ -66,21 +66,21 @@ if (isset($_GET['impersonate_token'])) {
         $pdo = getDB();
         $token = $_GET['impersonate_token'];
         
-        $stmt = $pdo->prepare('SELECT it.*, t.nama_toko FROM impersonation_tokens it JOIN toko t ON it.id_toko = t.id_toko WHERE it.token = ? AND it.expires_at > NOW()');
+        $stmt = $pdo->prepare('SELECT it.*, t.nama_toko FROM impersonation_tokens it JOIN toko t ON it.id_toko = t.id_toko WHERE it.token = ? AND it.expires_at > NOW() AND it.used_at IS NULL');
         $stmt->execute([$token]);
         $data = $stmt->fetch();
 
         if ($data) {
-            // Success — Setup Tenant Session
+            // Mark token as used (single-use)
+            $pdo->prepare('UPDATE impersonation_tokens SET used_at = NOW() WHERE id = ?')->execute([$data['id']]);
+            
+            // Setup Tenant Session
             session_regenerate_id(true);
             $_SESSION['tenant_id'] = $data['id_toko'];
             $_SESSION['nama_toko'] = $data['nama_toko'];
             $_SESSION['role']      = 'tenant';
-            $_SESSION['is_impersonating'] = true; // Flag for UI header
+            $_SESSION['is_impersonating'] = true;
 
-            // Cleanup token
-            $pdo->prepare('DELETE FROM impersonation_tokens WHERE token = ?')->execute([$token]);
-            
             header("Location: admin.php?status=success&msg=Impersonation+Mode+Active");
             exit;
         } else {
@@ -88,6 +88,7 @@ if (isset($_GET['impersonate_token'])) {
             exit;
         }
     } catch (PDOException $e) {
+        error_log("Impersonation error: " . $e->getMessage());
         // Fallback to normal login
     }
 }
@@ -105,6 +106,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['api'])) {
 
     $data = json_decode(file_get_contents('php://input'), true);
     if (!csrfVerify($data)) {
+        logSecurityEvent('CSRF_FAIL', 'medium', 'Login form CSRF token mismatch');
         echo json_encode(['status' => 'error', 'message' => 'Session expired. Please reload the page.']);
         exit;
     }
@@ -113,10 +115,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['api'])) {
     $pass = $data['password'] ?? '';
     $remember = $data['remember'] ?? false;
 
-    // Brute-force protection (locked 5 min after 3 failures)
-    if (isset($_SESSION['lockout_time']) && time() < $_SESSION['lockout_time']) {
-        $wait = ceil(($_SESSION['lockout_time'] - time()) / 60);
-        echo json_encode(['status' => 'error', 'message' => "Too many attempts. System locked for $wait minutes."]);
+    // IP-based brute-force protection (replaces session-based)
+    $lockoutRemaining = checkRateLimit();
+    if ($lockoutRemaining > 0) {
+        $wait = ceil($lockoutRemaining / 60);
+        echo json_encode(['status' => 'error', 'message' => "Too many failed attempts. Try again in $wait minutes."]);
         exit;
     }
 
@@ -132,17 +135,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['api'])) {
         $master = $stmt->fetch();
 
         if ($master && password_verify($pass, $master['password'])) {
+            // Check account lockout
+            if (($master['status'] ?? 'active') !== 'active') {
+                echo json_encode(['status' => 'error', 'message' => 'Master account suspended.']);
+                exit;
+            }
+
             session_regenerate_id(true); 
             $_SESSION['master_logged_in'] = true;
             $_SESSION['master_id'] = $master['id_admin'] ?? $master['id'] ?? 1;
             $_SESSION['master_username'] = $master['username'];
             $_SESSION['role'] = 'master';
-            $_SESSION['login_attempts'] = 0;
 
-            if (($master['status'] ?? 'active') !== 'active') {
-                echo json_encode(['status' => 'error', 'message' => 'Master account suspended.']);
-                exit;
-            }
+            // Record successful login
+            recordLoginAttempt($user, true);
+            clearLoginAttempts();
+
+            // Update last login info
+            $pdo->prepare('UPDATE master_admin SET last_login_at = NOW(), last_login_ip = ?, failed_login_count = 0 WHERE id_admin = ?')
+                ->execute([$_SERVER['REMOTE_ADDR'] ?? '', $master['id_admin']]);
 
             if ($remember) {
                 $token = createRememberToken($master['username'], 'master');
@@ -153,7 +164,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['api'])) {
             exit;
         }
     } catch (PDOException $e) {
-        // Log query error but keep going to check Tenant
         error_log("Master Login Error: " . $e->getMessage());
     }
 
@@ -164,12 +174,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['api'])) {
         $toko = $stmt->fetch();
 
         if ($toko && password_verify($pass, $toko['password'])) {
-            session_regenerate_id(true);
-            $_SESSION['tenant_id'] = $toko['id_toko'] ?? $toko['id'];
-            $_SESSION['nama_toko'] = $toko['nama_toko'];
-            $_SESSION['role'] = 'tenant';
-            $_SESSION['login_attempts'] = 0;
-
             $status = $toko['status'] ?? 'active';
             if ($status !== 'active') {
                 $msg = $status === 'pending' 
@@ -178,6 +182,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['api'])) {
                 echo json_encode(['status' => 'error', 'message' => $msg]);
                 exit;
             }
+
+            session_regenerate_id(true);
+            $_SESSION['tenant_id'] = $toko['id_toko'] ?? $toko['id'];
+            $_SESSION['nama_toko'] = $toko['nama_toko'];
+            $_SESSION['role'] = 'tenant';
+
+            // Record successful login
+            recordLoginAttempt($user, true);
+            clearLoginAttempts();
 
             if ($remember) {
                 $token = createRememberToken((string)$_SESSION['tenant_id'], 'tenant');
@@ -188,18 +201,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['api'])) {
             exit;
         }
     } catch (PDOException $e) {
-        echo json_encode(['status' => 'error', 'message' => 'Database error during authentication: ' . $e->getMessage()]);
+        // SECURITY: Do NOT leak database error details to client
+        error_log("Tenant Login Error: " . $e->getMessage());
+        echo json_encode(['status' => 'error', 'message' => 'A system error occurred. Please try again later.']);
         exit;
     }
 
-    // Failed
-    $_SESSION['login_attempts'] = ($_SESSION['login_attempts'] ?? 0) + 1;
-    if ($_SESSION['login_attempts'] >= 3) {
-        $_SESSION['lockout_time'] = time() + (5 * 60);
-        echo json_encode(['status' => 'error', 'message' => 'Authorization denied 3 times. Access temporarily blocked.']);
+    // Failed login — record and respond
+    recordLoginAttempt($user, false);
+    $remaining = getRemainingAttempts();
+    
+    if ($remaining <= 0) {
+        echo json_encode(['status' => 'error', 'message' => 'Too many failed attempts. Access temporarily blocked.']);
     } else {
-        $sisa = 3 - $_SESSION['login_attempts'];
-        echo json_encode(['status' => 'error', 'message' => "Incorrect username or password. $sisa attempts left."]);
+        echo json_encode(['status' => 'error', 'message' => "Incorrect username or password. $remaining attempts remaining."]);
     }
     exit;
 }
@@ -236,7 +251,7 @@ if (!isset($_SESSION['role']) && isset($_COOKIE['remember_token'])) {
                 }
             }
         } catch (PDOException $e) {
-            // Continue to login page
+            error_log("Auto-login error: " . $e->getMessage());
         }
     }
 

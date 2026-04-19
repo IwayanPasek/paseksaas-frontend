@@ -7,6 +7,7 @@ session_start();
 require_once __DIR__ . '/includes/db.php';
 require_once __DIR__ . '/includes/auth.php';
 require_once __DIR__ . '/includes/csrf.php';
+require_once __DIR__ . '/includes/error_handler.php';
 require_once __DIR__ . '/includes/vite.php';
 
 requireMaster();
@@ -16,14 +17,18 @@ $csrfToken = csrfToken();
 // ── Hyper-Admin: Action Logger ──
 function masterLogAction(string $type, string $entity, ?int $id, ?string $details = null) {
     global $pdo;
-    $stmt = $pdo->prepare('INSERT INTO audit_logs (id_admin, action_type, entity_type, entity_id, action_details, ip_address) VALUES (?, ?, ?, ?, ?, ?)');
+    $stmt = $pdo->prepare(
+        'INSERT INTO audit_logs (id_admin, action_type, entity_type, entity_id, action_details, ip_address, user_agent) 
+         VALUES (?, ?, ?, ?, ?, ?, ?)'
+    );
     $stmt->execute([
         $_SESSION['master_id'] ?? 0,
         $type,
         $entity,
         $id,
         $details,
-        $_SERVER['REMOTE_ADDR']
+        $_SERVER['REMOTE_ADDR'],
+        substr($_SERVER['HTTP_USER_AGENT'] ?? '', 0, 500),
     ]);
 }
 
@@ -40,7 +45,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['register_tenant'])) {
 
     $nama = htmlspecialchars(trim($_POST['storeName'] ?? $_POST['nama_toko'] ?? ''));
     $sub  = strtolower(preg_replace('/[^a-zA-Z0-9-]/', '', $_POST['subdomain'] ?? ''));
-    $pass = password_hash($_POST['storePassword'] ?? $_POST['password_toko'] ?? '', PASSWORD_BCRYPT);
+    $pass = password_hash($_POST['storePassword'] ?? $_POST['password_toko'] ?? '', PASSWORD_BCRYPT, ['cost' => 12]);
     $wa   = preg_replace('/[^0-9]/', '', $_POST['whatsappNumber'] ?? $_POST['kontak_wa'] ?? '');
     $kb   = trim($_POST['aiContext'] ?? $_POST['knowledge_base'] ?? '');
 
@@ -51,6 +56,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['register_tenant'])) {
         masterLogAction('CREATE', 'TENANT', $newId, "Created tenant: $nama ($sub)");
         header('Location: master.php?status=success&msg=' . urlencode($nama));
     } catch (PDOException $e) {
+        error_log("Tenant creation error: " . $e->getMessage());
         header('Location: master.php?status=error&msg=' . urlencode('Subdomain is already in use or an error occurred.'));
     }
     exit;
@@ -59,7 +65,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['register_tenant'])) {
 // ── Approve Tenant ──
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['approve_tenant'])) {
     if (!csrfVerify()) { 
-        header('Location: master.php?status=error&msg=Token+CSRF+tidak+valid'); 
+        header('Location: master.php?status=error&msg=Invalid+CSRF+token'); 
         exit; 
     }
     $id = (int) $_POST['approve_tenant'];
@@ -72,7 +78,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['approve_tenant'])) {
 // ── Suspend Tenant ──
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['suspend_tenant'])) {
     if (!csrfVerify()) { 
-        header('Location: master.php?status=error&msg=Token+CSRF+tidak+valid'); 
+        header('Location: master.php?status=error&msg=Invalid+CSRF+token'); 
         exit; 
     }
     $id = (int) $_POST['suspend_tenant'];
@@ -85,7 +91,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['suspend_tenant'])) {
 // ── Unsuspend Tenant ──
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['unsuspend_tenant'])) {
     if (!csrfVerify()) { 
-        header('Location: master.php?status=error&msg=Token+CSRF+tidak+valid'); 
+        header('Location: master.php?status=error&msg=Invalid+CSRF+token'); 
         exit; 
     }
     $id = (int) $_POST['unsuspend_tenant'];
@@ -98,7 +104,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['unsuspend_tenant'])) 
 // ── Reject/Delete Tenant ──
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['reject_tenant'])) {
     if (!csrfVerify()) { 
-        header('Location: master.php?status=error&msg=Token+CSRF+tidak+valid'); 
+        header('Location: master.php?status=error&msg=Invalid+CSRF+token'); 
         exit; 
     }
     $id = (int) $_POST['reject_tenant'];
@@ -119,17 +125,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['impersonate_tenant'])
     $token = bin2hex(random_bytes(32));
     $expires = date('Y-m-d H:i:s', time() + 1800); // 30 mins
     
-    $pdo->prepare("INSERT INTO impersonation_tokens (token, id_toko, expires_at) VALUES (?, ?, ?)")
-        ->execute([$token, $id, $expires]);
+    $pdo->prepare("INSERT INTO impersonation_tokens (token, id_toko, created_by, expires_at) VALUES (?, ?, ?, ?)")
+        ->execute([$token, $id, $_SESSION['master_id'] ?? 0, $expires]);
         
-    masterLogAction('IMPERSONATE', 'TENANT', $id, "Generated token: $token");
+    // SECURITY: Hash the token in audit log to prevent extraction from logs
+    $tokenHash = substr(hash('sha256', $token), 0, 12);
+    masterLogAction('IMPERSONATE', 'TENANT', $id, "Generated token (hash: $tokenHash...)");
     
     echo json_encode(['status' => 'success', 'token' => $token]);
     exit;
 }
 
-// ── Fetch tenants ──
-$tenants = $pdo->query('SELECT id_toko, nama_toko, email, subdomain, kontak_wa, status, created_at FROM toko ORDER BY id_toko DESC')->fetchAll();
+// ── Fetch tenants (FIXED: Added LIMIT for safety) ──
+$tenants = $pdo->query('SELECT id_toko, nama_toko, email, subdomain, kontak_wa, status, created_at FROM toko ORDER BY id_toko DESC LIMIT 500')->fetchAll();
 
 // Mask WhatsApp numbers for privacy (show first 4 + last 3 digits)
 foreach ($tenants as &$t) {
@@ -140,24 +148,37 @@ foreach ($tenants as &$t) {
 }
 unset($t);
 
-// ── Global Analytics ──
+// ── Global Analytics (FIXED: Single optimized query instead of unbounded COUNT) ──
+$statsQuery = $pdo->query("
+    SELECT 
+        (SELECT COUNT(*) FROM toko LIMIT 1) AS totalTenants,
+        (SELECT COUNT(*) FROM toko WHERE status = 'active' LIMIT 1) AS activeTenants,
+        (SELECT COUNT(*) FROM log_chat LIMIT 1) AS totalInteractions,
+        (SELECT COUNT(*) FROM produk LIMIT 1) AS totalServices
+")->fetch();
+
 $stats = [
-    'totalTenants'      => count($tenants),
-    'activeTenants'     => count(array_filter($tenants, fn($t) => $t['status'] === 'active')),
-    'totalInteractions' => (int) $pdo->query("SELECT COUNT(*) FROM log_chat")->fetchColumn(),
-    'totalServices'     => (int) $pdo->query("SELECT COUNT(*) FROM produk")->fetchColumn(),
+    'totalTenants'      => (int) $statsQuery['totalTenants'],
+    'activeTenants'     => (int) $statsQuery['activeTenants'],
+    'totalInteractions' => (int) $statsQuery['totalInteractions'],
+    'totalServices'     => (int) $statsQuery['totalServices'],
 ];
 
 // Audit Logs (Latest 50)
 $audit_logs = $pdo->query("SELECT * FROM audit_logs ORDER BY id_audit DESC LIMIT 50")->fetchAll();
 
-// Growth Chart (Last 14 days)
+// Growth Chart (Last 14 days) — FIXED: Single aggregated query
 $growth = [];
+$startDate = date('Y-m-d', strtotime('-13 days'));
+$growthQuery = $pdo->prepare("SELECT DATE(created_at) as reg_date, COUNT(*) as reg_count FROM toko WHERE created_at >= ? GROUP BY DATE(created_at)");
+$growthQuery->execute([$startDate]);
+$growthData = [];
+while ($row = $growthQuery->fetch()) {
+    $growthData[$row['reg_date']] = (int) $row['reg_count'];
+}
 for ($i = 13; $i >= 0; $i--) {
     $date = date('Y-m-d', strtotime("-$i days"));
-    $stmt = $pdo->prepare("SELECT COUNT(*) FROM toko WHERE DATE(created_at) = ?");
-    $stmt->execute([$date]);
-    $growth[] = ['date' => date('d M', strtotime($date)), 'count' => (int) $stmt->fetchColumn()];
+    $growth[] = ['date' => date('d M', strtotime($date)), 'count' => $growthData[$date] ?? 0];
 }
 
 // Map Tenants to English

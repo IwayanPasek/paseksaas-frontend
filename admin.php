@@ -7,6 +7,7 @@ session_start();
 require_once __DIR__ . '/includes/db.php';
 require_once __DIR__ . '/includes/auth.php';
 require_once __DIR__ . '/includes/csrf.php';
+require_once __DIR__ . '/includes/error_handler.php';
 require_once __DIR__ . '/includes/vite.php';
 
 $id_toko = requireTenant();
@@ -57,7 +58,6 @@ function optimizeToWebp(string $sourcePath, string $destPath, int $maxWidth = 80
         $img = $newImg;
     }
     
-    // Convert to webp
     $success = @imagewebp($img, $destPath, $quality);
     imagedestroy($img);
     return $success;
@@ -81,7 +81,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_category'])) {
 
 // ── Category: Delete (POST + CSRF) ──
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && (isset($_POST['deleteCategoryId']) || isset($_POST['del_cat']))) {
-    if (!csrfVerify()) { header('Location: admin.php?status=error&msg=Token+CSRF+tidak+valid&tab=categories'); exit; }
+    if (!csrfVerify()) { header('Location: admin.php?status=error&msg=Invalid+CSRF+token&tab=categories'); exit; }
     $id_del = (int) ($_POST['deleteCategoryId'] ?? $_POST['del_cat']);
     $stmt = $pdo->prepare('DELETE FROM kategori WHERE id_kategori = ? AND id_toko = ?');
     $stmt->execute([$id_del, $id_toko]);
@@ -137,7 +137,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_product'])) {
 
 // ── Product: Delete (POST + CSRF) ──
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && (isset($_POST['deleteProductId']) || isset($_POST['hapus_prod']))) {
-    if (!csrfVerify()) { header('Location: admin.php?status=error&msg=Token+CSRF+tidak+valid&tab=products'); exit; }
+    if (!csrfVerify()) { header('Location: admin.php?status=error&msg=Invalid+CSRF+token&tab=products'); exit; }
     $id_del = (int) ($_POST['deleteProductId'] ?? $_POST['hapus_prod']);
     $img = $pdo->prepare('SELECT foto_produk FROM produk WHERE id_produk = ? AND id_toko = ?');
     $img->execute([$id_del, $id_toko]);
@@ -163,8 +163,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_persona'])) {
     exit;
 }
 
-// ── FAQ: Add ──
-if (isset($_POST['add_faq'])) {
+// ── FAQ: Add (FIXED: Now requires POST method) ──
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_faq'])) {
     if (!csrfVerify()) { header('Location: admin.php?status=error&msg=Invalid+CSRF+token'); exit; }
     $pdo->prepare('INSERT INTO faq_toko (id_toko, pertanyaan, jawaban) VALUES (?, ?, ?)')
         ->execute([
@@ -178,7 +178,7 @@ if (isset($_POST['add_faq'])) {
 
 // ── FAQ: Delete (POST + CSRF) ──
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && (isset($_POST['deleteFaqId']) || isset($_POST['del_faq']))) {
-    if (!csrfVerify()) { header('Location: admin.php?status=error&msg=Token+CSRF+tidak+valid&tab=persona'); exit; }
+    if (!csrfVerify()) { header('Location: admin.php?status=error&msg=Invalid+CSRF+token&tab=persona'); exit; }
     $id_del = (int) ($_POST['deleteFaqId'] ?? $_POST['del_faq']);
     $pdo->prepare('DELETE FROM faq_toko WHERE id_faq = ? AND id_toko = ?')->execute([$id_del, $id_toko]);
     header('Location: admin.php?status=success&msg=FAQ+Deleted&tab=persona');
@@ -248,14 +248,24 @@ $stmt = $pdo->prepare('SELECT nama_toko, kontak_wa, deskripsi_landing, logo, ai_
 $stmt->execute([$id_toko]);
 $data_toko = $stmt->fetch();
 
-// Analytics: 7-day chat trend
+// Analytics: 7-day chat trend — FIXED: Single aggregated query instead of N+1 loop
 $grafik = [];
+$startDate = date('Y-m-d', strtotime('-6 days'));
+$stmt = $pdo->prepare(
+    'SELECT DATE(created_at) as chat_date, COUNT(*) as chat_count 
+     FROM log_chat 
+     WHERE id_toko = ? AND created_at >= ? 
+     GROUP BY DATE(created_at)'
+);
+$stmt->execute([$id_toko, $startDate]);
+$chatCounts = [];
+while ($row = $stmt->fetch()) {
+    $chatCounts[$row['chat_date']] = (int) $row['chat_count'];
+}
 for ($i = 6; $i >= 0; $i--) {
     $date = date('Y-m-d', strtotime("-$i days"));
     $display = date('d M', strtotime("-$i days"));
-    $stmt = $pdo->prepare('SELECT COUNT(*) FROM log_chat WHERE id_toko = ? AND DATE(created_at) = ?');
-    $stmt->execute([$id_toko, $date]);
-    $grafik[] = ['name' => $display, 'interaksi' => (int) $stmt->fetchColumn()];
+    $grafik[] = ['name' => $display, 'interaksi' => $chatCounts[$date] ?? 0];
 }
 
 // ── Inject CSRF token for React forms ──
