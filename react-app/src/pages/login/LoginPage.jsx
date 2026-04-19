@@ -28,7 +28,14 @@ export default function LoginPage() {
       });
       const data = await response.json();
       if (data.status === 'success') window.location.assign(data.redirect);
-      else { triggerError(data.message); setIsLoading(false); }
+      else {
+        triggerError(data.message);
+        // If session expired (CSRF rotated), reload to get a fresh token
+        if (data.message && data.message.includes('Session expired')) {
+          setTimeout(() => window.location.reload(), 1500);
+        }
+        setIsLoading(false);
+      }
     } catch { triggerError('Failed to connect to the authorization server.'); setIsLoading(false); }
   };
 

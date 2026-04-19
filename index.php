@@ -75,9 +75,23 @@ $reactData = [
     'storeDescription' => $desc,
     'whatsappNumber'   => $wa,
     'logo'             => $toko['logo'] ?? null,
-    'products'         => (array) ($list_produk ?: []),
-    'categories'       => (array) ($list_kategori ?: []),
-    'faqItems'         => (array) ($list_faq ?: []),
+    'products'         => array_map(fn($p) => [
+        'id'          => (int)$p['id_produk'],
+        'name'        => $p['nama_produk'],
+        'price'       => (int)$p['harga'],
+        'description' => $p['deskripsi'],
+        'image'       => $p['foto_produk'] ?: 'default.jpg',
+        'categoryId'  => (int)$p['id_kategori'],
+    ], $list_produk ?: []),
+    'categories'       => array_map(fn($c) => [
+        'id'   => (int)$c['id_kategori'],
+        'name' => $c['nama_kategori'],
+    ], $list_kategori ?: []),
+    'faqItems'         => array_map(fn($f) => [
+        'id'       => (int)$f['id_faq'],
+        'question' => $f['pertanyaan'],
+        'answer'   => $f['jawaban'],
+    ], $list_faq ?: []),
     'themeColor'       => $theme,
 ];
 

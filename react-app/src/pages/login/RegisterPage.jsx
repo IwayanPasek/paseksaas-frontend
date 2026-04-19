@@ -89,6 +89,9 @@ export default function RegisterPage() {
                 setIsSuccess(true);
             } else {
                 triggerError(data.message);
+                if (data.message && data.message.includes('Session expired')) {
+                    setTimeout(() => window.location.reload(), 1500);
+                }
             }
         } catch {
             triggerError('Failed to connect to the registration server.');

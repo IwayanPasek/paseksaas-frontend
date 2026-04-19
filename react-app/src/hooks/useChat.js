@@ -44,7 +44,7 @@ export function useChat() {
             const aiReply = {
                 role: 'ai',
                 text: chatData.reply || 'Sorry, I couldn\'t process that request.',
-                products: chatData.db_result || [],
+                products: chatData.products || chatData.db_result || [],
                 showWhatsAppCard: false,
             };
             if (chatData.reply && WHATSAPP_TRIGGER.test(chatData.reply)) aiReply.showWhatsAppCard = true;

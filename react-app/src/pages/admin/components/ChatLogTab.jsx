@@ -27,7 +27,7 @@ export default function ChatLogTab() {
             </div>
             <div className="flex gap-2.5 text-sm text-neutral-600 bg-neutral-50 border border-neutral-100 px-3.5 py-2.5 rounded-xl rounded-tl-sm max-w-[90%] ml-4">
               <Sparkles size={14} className="text-neutral-400 shrink-0 mt-0.5" />
-              <div dangerouslySetInnerHTML={{ __html: reply.replace(/\n/g, '<br/>') }} />
+              <div style={{ whiteSpace: 'pre-line' }}>{reply}</div>
             </div>
           </div>
         );

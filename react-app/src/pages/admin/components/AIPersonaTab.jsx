@@ -31,9 +31,10 @@ export default function AIPersonaTab({ csrfToken }) {
               <select name="aiTone" defaultValue={adminData.store?.aiTone || 'formal'} 
                 className="w-full bg-neutral-800 border border-neutral-700 rounded-xl px-4 py-3.5 text-sm text-white outline-none cursor-pointer focus:border-indigo-500/50 transition-all appearance-none shadow-sm">
                 <option value="formal" className="bg-neutral-800 text-white">👔 Formal & Polished</option>
-                <option value="casual" className="bg-neutral-800 text-white">🤙 Casual & Friendly</option>
-                <option value="professional" className="bg-neutral-800 text-white">💼 Business Professional</option>
-                <option value="friendly" className="bg-neutral-800 text-white">😊 Warm & Welcoming</option>
+                <option value="santai" className="bg-neutral-800 text-white">🤙 Casual & Friendly</option>
+                <option value="profesional" className="bg-neutral-800 text-white">💼 Business Professional</option>
+                <option value="ramah" className="bg-neutral-800 text-white">😊 Warm & Welcoming</option>
+                <option value="singkat" className="bg-neutral-800 text-white">⚡ Brief & Concise</option>
               </select>
             </div>
             <div className="space-y-2">
